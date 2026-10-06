@@ -121,8 +121,13 @@ export const APPS = {
   },
 };
 
-// _config.yml 의 desktop.druid 가 false 면 Apache Druid 를 목록에서 뺀다.
-// Spotlight · 앱 전환기 · Dock 의 임시 칸이 모두 이 목록을 보므로 여기 한 곳에서.
+// desktop.apps 에서 false 로 끈 선택 앱은 레지스트리에서도 뺀다.
+// Dock · Spotlight · 앱 전환기 등이 같은 APPS 를 보므로 여기 한 곳에서 맞춘다.
+for (const key of ['obsidian', 'mail', 'notes', 'terminal', 'games', 'music']) {
+  if (!SITE.desktop.apps[key]) delete APPS[key];
+}
+
+// _config.yml 의 desktop.druid 가 false 면 Apache Druid 도 목록에서 뺀다.
 if (!SITE.desktop.druid) delete APPS.druid;
 
 /** 창 → 앱 이름(키). 모르는 창은 Finder 로 친다. */
