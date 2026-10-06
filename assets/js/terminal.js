@@ -55,6 +55,16 @@ const APPS = {
   Games: '[data-dock-games]',
   Spotify: '[data-dock-music]',
 };
+const OPTIONAL_APPS = {
+  Obsidian: 'obsidian',
+  Notes: 'notes',
+  Terminal: 'terminal',
+  Games: 'games',
+  Spotify: 'music',
+};
+for (const [name, key] of Object.entries(OPTIONAL_APPS)) {
+  if (!SITE.desktop.apps[key]) delete APPS[name];
+}
 
 async function buildFs() {
   const nodes = new Map();
