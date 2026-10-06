@@ -1,0 +1,25 @@
+_site/*
+_theme_packages/*
+
+Thumbs.db
+.DS_Store
+
+!.gitkeep
+
+.rbenv-version
+.rvmrc
+/vendor
+
+*.lock
+
+# 공유 썸네일 도구(tools/og)의 의존성
+tools/og/node_modules/
+# Druid 2D 의 React Flow 묶음 도구(tools/druid)의 의존성
+tools/druid/node_modules/
+# 창 최소화 효과가 쓰는 html-to-image 묶음 도구(tools/genie)의 의존성
+tools/genie/node_modules/
+
+# Ruby Sass 캐시
+.sass-cache/
+# README 데모 GIF 촬영 도구(tools/demo)의 의존성
+tools/demo/node_modules/

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="{{ site.language | default: "en" }}" data-theme="light">
+<head>
+  {%- if page.layout == "minimal_post" or page.layout == "home" %}
+  {% include head.html syntax=true %}
+  {%- else %}
+  {% include head.html %}
+  {%- endif %}
+</head>
+{%- comment -%}
+  맥북의 데스크톱 한 장. 배경화면 위에 메뉴 막대와 Dock, 그 사이에 창이 뜬다.
+  글 목록은 Finder 창(home), 글은 문서 창(minimal_post)이다.
+  배경화면은 _config.yml 의 wallpaper(_2x) 로 바꿀 수 있다. wallpaper_color 가 있으면
+  그림 대신 그 색 한 가지로 칠한다. wallpaper_grid 가 true 면 그 위를 명령어 격자(wallgrid.js)로 덮는다.
+{%- endcomment -%}
+{%- assign wall = site.wallpaper | default: '/assets/images/wallpaper.webp' %}
+{%- assign wall2x = site.wallpaper_2x | default: wall %}
+{%- assign wallDark = site.wallpaper_dark | default: wall %}
+{%- assign wallDark2x = site.wallpaper_dark_2x | default: wallDark %}
+{%- comment -%}
+  시스템 설정(settings.js)의 배경화면 목록에서 _config.yml 의 것이 어느 것인지(data-default).
+  목록에 없는 그림이면 custom — 설정에 'Default' 칸으로 따로 선다.
+{%- endcomment -%}
+{%- if site.wallpaper_grid %}{% assign wallId = 'grid' %}
+{%- elsif site.wallpaper_color %}{% assign wallId = 'color:' | append: site.wallpaper_color | downcase %}
+{%- elsif wall contains 'wallpaper-monterey' %}{% assign wallId = 'monterey' %}
+{%- elsif wall == '/assets/images/wallpaper.webp' %}{% assign wallId = 'ephemeris' %}
+{%- else %}{% assign wallId = 'custom' %}{% endif %}
+<body class="desktop desktop--{{ page.layout | default: 'page' }}" data-posts-src="{{ '/search.json' | relative_url }}" data-wallpaper-tone="{{ site.wallpaper_tone | default: 'light' }}">
+  {%- comment -%} 시스템 설정에서 고른 배경화면의 밝기(head.html 이 html 에 적어 둔 것)를 body 로. 메뉴 막대 글자색이 이것을 따른다. {%- endcomment %}
+  <script>
+    (function () {
+      var t = document.documentElement.getAttribute('data-wall-tone');
+      if (t) document.body.setAttribute('data-wallpaper-tone', t);
+    })();
+  </script>
+  {% include icons.html %}
+  {% include lockscreen.html %}
+  {%- if site.wallpaper_color %}
+  <div class="wallpaper" aria-hidden="true" data-default="{{ wallId }}" data-default-tone="{{ site.wallpaper_tone | default: 'light' }}" style="background: {{ site.wallpaper_color }}"></div>
+  {%- else %}
+  <div class="wallpaper" aria-hidden="true" data-default="{{ wallId }}" data-default-tone="{{ site.wallpaper_tone | default: 'light' }}" style="--wallpaper: url('{{ wall | relative_url }}'); --wallpaper-2x: url('{{ wall2x | relative_url }}'); --wallpaper-dark: url('{{ wallDark | relative_url }}'); --wallpaper-dark-2x: url('{{ wallDark2x | relative_url }}')"></div>
+  {%- endif %}
+  <a class="skip-link" href="#main-window">Skip to content</a>
+
+  {% include menubar.html %}
+
+  <main class="workspace" id="workspace">
+    {{ content }}
+  </main>
+
+  {% include dock.html %}
+  {%- if page.layout == "home" %}
+  {%- comment -%}
+    /?at=위치 · /?c=태그 로 들어왔을 때, 모듈이 돌기 전(첫 그림)부터 그 위치와
+    걸러진 목록을 보인다. 이게 없으면 응용 프로그램이 한 번 보였다가 바뀌며
+    화면이 크게 밀린다. finder.js 는 같은 상태를 다시 계산하므로 여기서는
+    보이는 것만 맞춘다.
+  {%- endcomment %}
+  <script>
+  (function () {
+    var q = new URLSearchParams(location.search), c = q.get('c'), at = q.get('at'), tag = null, n = 0;
+    var names = { desktop: 'Desktop', obsidian: 'Obsidian', downloads: 'Downloads' };
+    if (c) {
+      document.querySelectorAll('.finder__item[data-category]').forEach(function (a) {
+        if (a.getAttribute('data-category') === c) tag = a;
+      });
+      if (!tag) return;
+      at = 'obsidian';
+    }
+    if (!names[at]) return;
+    document.querySelectorAll('.finder [data-place-view]').forEach(function (v) {
+      v.hidden = v.getAttribute('data-place-view') !== at;
+    });
+    document.querySelectorAll('.finder a[data-place]').forEach(function (a) {
+      var on = a.getAttribute('data-place') === at && (!tag || a.closest('.finder__places'));
+      if (on) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    });
+    if (at === 'obsidian') {
+      document.querySelectorAll('.finder .row').forEach(function (r) {
+        var ok = !tag || r.getAttribute('data-category') === c;
+        r.hidden = !ok;
+        if (ok) n++;
+      });
+      document.querySelectorAll('.finder [data-year]').forEach(function (y) {
+        y.hidden = !y.querySelector('.row:not([hidden])');
+      });
+    } else {
+      n = document.querySelectorAll('.finder [data-place-view="' + at + '"] .ficon, .finder [data-place-view="' + at + '"] [data-download]').length;
+    }
+    if (tag) tag.setAttribute('aria-current', 'true');
+    document.querySelector('[data-list-title]').textContent = tag ? tag.querySelector('.finder__label').textContent.trim() : names[at];
+    if (at !== 'downloads' || n) document.querySelector('[data-status]').textContent = n + (n === 1 ? ' item' : ' items');
+  })();
+  </script>
+  {%- endif %}
+  {% include spotlight.html %}
+
+  <script type="module" src="{{ "/assets/js/glass.js" | relative_url }}"></script>
+  <script type="module" src="{{ "/assets/js/desktop.js" | relative_url }}"></script>
+  {%- comment -%}
+    명령어 격자(wallgrid.js)는 배경화면이 격자일 때만 불러온다: 시스템 설정에서 'Linux Commands' 를
+    골랐거나, 아무것도 고르지 않았고 _config.yml 의 wallpaper_grid 가 true 일 때.
+  {%- endcomment %}
+  <script type="module">
+    var w = document.documentElement.getAttribute('data-wallpaper');
+    if (w === 'grid' || (!w && {{ site.wallpaper_grid | default: false }})) import('{{ "/assets/js/wallgrid.js" | relative_url }}');
+  </script>
+  {%- if page.layout == "home" %}
+  <script type="module" src="{{ "/assets/js/finder.js" | relative_url }}"></script>
+  <script type="module" src="{{ "/assets/js/docs.js" | relative_url }}"></script>
+  {%- elsif page.layout == "minimal_post" %}
+  <script type="module" src="{{ "/assets/js/post.js" | relative_url }}"></script>
+  {%- endif %}
+</body>
+</html>

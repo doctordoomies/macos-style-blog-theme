@@ -1,0 +1,14 @@
+# Your projects, shown in order as app icons in the Games window (Dock) and listed
+# under ~/Projects in Terminal.
+#   name  label under the icon · desc  one-line description · url  opens in a new tab
+#   icon  picture name: assets/images/apps/<icon>-128.png and <icon>-256.png (rounded-square app icon)
+
+- name: Ephemeris
+  desc: this blog's theme
+  url: https://github.com/wlswo/macos-style-blog-theme
+  icon: ephemeris
+
+- name: Your App
+  desc: replace me in _data/projects.yml
+  url: https://example.com
+  icon: sample

@@ -1,0 +1,65 @@
+/*
+ * 코드 색. Xcode 의 기본 밝은 테마(Default Light)를 옮겼다.
+ * 바탕은 main.css 의 코드 블록이 칠한다.
+ */
+.highlight { color: #000000; }
+
+/* 주석 */
+.highlight .c, .highlight .c1, .highlight .cm, .highlight .cs, .highlight .cd { color: #5d6c79; }
+.highlight .cp, .highlight .cpf { color: #643820; }
+
+/* 예약어 */
+.highlight .k, .highlight .kd, .highlight .kn, .highlight .kp, .highlight .kr,
+.highlight .kt, .highlight .kc, .highlight .kv, .highlight .ow { color: #9b2393; font-weight: 600; }
+
+/* 문자열 */
+.highlight .s, .highlight .s1, .highlight .s2, .highlight .sb, .highlight .sc, .highlight .sd,
+.highlight .se, .highlight .sh, .highlight .si, .highlight .sx, .highlight .sr, .highlight .ss,
+.highlight .dl, .highlight .sa { color: #c41a16; }
+
+/* 숫자 */
+.highlight .m, .highlight .mi, .highlight .mf, .highlight .mh, .highlight .mo,
+.highlight .mb, .highlight .mx, .highlight .il { color: #1c00cf; }
+
+/* 이름 */
+.highlight .nc, .highlight .nn, .highlight .ne { color: #0b4f79; }
+.highlight .nf, .highlight .fm, .highlight .no { color: #326d74; }
+.highlight .nb, .highlight .bp { color: #3900a0; }
+.highlight .nd { color: #815f03; }
+.highlight .na, .highlight .nt, .highlight .nl { color: #0f68a0; }
+.highlight .nv, .highlight .vi, .highlight .vc, .highlight .vg { color: #326d74; }
+
+/* 기호 · 기타 */
+.highlight .o, .highlight .p, .highlight .n, .highlight .w { color: inherit; }
+.highlight .err { color: inherit; background: none; }
+.highlight .gd { color: #c41a16; }
+.highlight .gi { color: #1a7f37; }
+.highlight .gh, .highlight .gu { font-weight: 600; }
+.highlight .ge { font-style: italic; }
+.highlight .gs { font-weight: 600; }
+
+/* 다크 모양: Xcode 의 기본 어두운 테마(Default Dark) */
+html[data-theme="dark"] .highlight { color: #e6e6e8; }
+html[data-theme="dark"] .highlight .c, html[data-theme="dark"] .highlight .c1, html[data-theme="dark"] .highlight .cm,
+html[data-theme="dark"] .highlight .cs, html[data-theme="dark"] .highlight .cd { color: #7f8c98; }
+html[data-theme="dark"] .highlight .cp, html[data-theme="dark"] .highlight .cpf { color: #fd8f3f; }
+html[data-theme="dark"] .highlight .k, html[data-theme="dark"] .highlight .kd, html[data-theme="dark"] .highlight .kn,
+html[data-theme="dark"] .highlight .kp, html[data-theme="dark"] .highlight .kr, html[data-theme="dark"] .highlight .kt,
+html[data-theme="dark"] .highlight .kc, html[data-theme="dark"] .highlight .kv, html[data-theme="dark"] .highlight .ow { color: #fc5fa3; }
+html[data-theme="dark"] .highlight .s, html[data-theme="dark"] .highlight .s1, html[data-theme="dark"] .highlight .s2,
+html[data-theme="dark"] .highlight .sb, html[data-theme="dark"] .highlight .sc, html[data-theme="dark"] .highlight .sd,
+html[data-theme="dark"] .highlight .se, html[data-theme="dark"] .highlight .sh, html[data-theme="dark"] .highlight .si,
+html[data-theme="dark"] .highlight .sx, html[data-theme="dark"] .highlight .sr, html[data-theme="dark"] .highlight .ss,
+html[data-theme="dark"] .highlight .dl, html[data-theme="dark"] .highlight .sa { color: #fc6a5d; }
+html[data-theme="dark"] .highlight .m, html[data-theme="dark"] .highlight .mi, html[data-theme="dark"] .highlight .mf,
+html[data-theme="dark"] .highlight .mh, html[data-theme="dark"] .highlight .mo, html[data-theme="dark"] .highlight .mb,
+html[data-theme="dark"] .highlight .mx, html[data-theme="dark"] .highlight .il { color: #d0bf69; }
+html[data-theme="dark"] .highlight .nc, html[data-theme="dark"] .highlight .nn, html[data-theme="dark"] .highlight .ne { color: #5dd8ff; }
+html[data-theme="dark"] .highlight .nf, html[data-theme="dark"] .highlight .fm, html[data-theme="dark"] .highlight .no { color: #67b7a4; }
+html[data-theme="dark"] .highlight .nb, html[data-theme="dark"] .highlight .bp { color: #d0a8ff; }
+html[data-theme="dark"] .highlight .nd { color: #bf8555; }
+html[data-theme="dark"] .highlight .na, html[data-theme="dark"] .highlight .nt, html[data-theme="dark"] .highlight .nl { color: #41a1c0; }
+html[data-theme="dark"] .highlight .nv, html[data-theme="dark"] .highlight .vi, html[data-theme="dark"] .highlight .vc,
+html[data-theme="dark"] .highlight .vg { color: #67b7a4; }
+html[data-theme="dark"] .highlight .gd { color: #fc6a5d; }
+html[data-theme="dark"] .highlight .gi { color: #67b7a4; }

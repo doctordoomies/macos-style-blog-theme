@@ -1,0 +1,30 @@
+# Post categories — Finder tags, Obsidian folders, Calendar colors. Listed in sidebar order.
+# A post joins one with `categories: [slug]` in its front matter.
+#   slug   used in front matter and in the address (?c=slug)
+#   name   shown on screen · short  for tight spots · en  short English name (OG image, search)
+#   ko     extra search words (not shown) · icon  symbol id from _includes/icons.html
+#   color  the category's color in Calendar
+
+- slug: notes
+  name: Notes
+  short: Notes
+  en: Notes
+  ko: 노트
+  icon: note
+  color: "#a2845e"
+
+- slug: dev
+  name: Development
+  short: Dev
+  en: Development
+  ko: 개발
+  icon: cpu
+  color: "#ff9500"
+
+- slug: web
+  name: Web
+  short: Web
+  en: Web
+  ko: 웹
+  icon: globe
+  color: "#1badf8"

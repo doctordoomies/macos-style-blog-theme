@@ -1,0 +1,44 @@
+---
+layout: desktop
+---
+{%- comment -%}
+  About: 맥의 '이 Mac에 관하여' 창. 가운데 블로그의 아이콘, 이름, 한 줄 소개, 그리고
+  사양 대신 이 블로그의 몇 가지 숫자. 소개 글은 about/index.md 의 본문이다(비어 있으면 감춘다).
+  이 창은 크기를 바꾸지 않고, 초록 단추(확대)도 맥처럼 꺼져 있다.
+{%- endcomment -%}
+{%- assign newest = site.posts | first %}
+{%- assign oldest = site.posts | last %}
+<section class="window about" id="main-window" tabindex="-1" data-window="about" data-close-href="{{ '/' | relative_url }}" aria-labelledby="about-title">
+  <div class="about__bar" data-window-drag>
+    {% include traffic-lights.html nozoom=true %}
+  </div>
+  <div class="about__body">
+    <div class="about__icon">{% include bot.html %}</div>
+    <h1 class="about__title" id="about-title">{{ site.title }}</h1>
+
+    <dl class="about__specs">
+      <div><dt>Author</dt><dd>{{ site.author }}</dd></div>
+      {%- comment -%} 블로그의 분야(_config.yml 의 desktop.about_category). 비우면 이 줄을 감춘다. {%- endcomment %}
+      {%- if site.desktop.about_category %}
+      <div><dt>Category</dt><dd>{{ site.desktop.about_category }}</dd></div>
+      {%- endif %}
+      {%- if oldest %}
+      <div><dt>First Post</dt><dd><time datetime="{{ oldest.date | date: '%Y-%m-%d' }}">{{ oldest.date | date: "%B %-d, %Y" }}</time></dd></div>
+      <div><dt>Latest Post</dt><dd><a href="{{ newest.url | relative_url }}" lang="ko">{{ newest.title }}</a></dd></div>
+      {%- endif %}
+    </dl>
+
+    {%- assign intro = content | strip %}
+    {%- if intro != '' %}
+    <div class="about__text">
+      {{ content }}
+    </div>
+    {%- endif %}
+
+    <div class="about__actions">
+      <a class="button" href="{{ '/feed.xml' | relative_url }}">Subscribe (RSS)</a>
+      <a class="button button--primary" href="{{ '/' | relative_url }}">All Posts</a>
+    </div>
+    <p class="about__legal">© {{ site.time | date: '%Y' }} {{ site.author }}</p>
+  </div>
+</section>

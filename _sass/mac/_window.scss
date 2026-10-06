@@ -1,0 +1,2893 @@
+// ── 창 ──────────────────────────────────────────────────────────
+// 흰 창, 머리카락 같은 테두리, 크고 부드러운 그림자. 처음 자리는 CSS 가
+// 정하고, 사용자가 옮기거나 크기를 바꾸면 desktop.js 가 그 자리(frame)를
+// --x/--y/--w/--h 로 넘긴다(.has-frame).
+
+.window {
+  position: absolute;
+  z-index: 2; // 데스크톱 폴더(z 1)보다 위. 맥에서 창은 늘 아이콘 위에 뜬다
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--r-window);
+  background: var(--paper);
+  box-shadow:
+    0 0 0 var(--hair) var(--window-edge),
+    0 30px 70px -20px rgba(0, 0, 0, 0.32),
+    0 10px 26px -12px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+  outline: none;
+
+  &.has-frame {
+    top: var(--y);
+    left: var(--x);
+    width: var(--w);
+    height: var(--h);
+  }
+
+  // 끄는 동안에는 안의 글자가 선택되지 않게.
+  &.is-dragging,
+  &.is-resizing {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  &.is-minimized,
+  &.is-closed {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  // 초록 단추: 메뉴 막대와 Dock 사이를 가득 채운다. 옮긴 자리보다 앞선다.
+  &.is-zoomed {
+    top: 6px;
+    left: 6px;
+    width: calc(100% - 12px);
+    height: calc(100% - var(--dock-reserve) - 6px);
+  }
+}
+
+// 크기를 바꿀 수 있는 창은 손잡이가 테두리 바깥까지 걸치도록 잘라 내지 않는다.
+// 둥근 모서리는 안쪽 판들이 각자 자른다.
+.window.finder,
+.window.doc {
+  overflow: visible;
+}
+
+// 크기 조절 손잡이: 네 변과 네 모서리. 테두리 바로 바깥에 걸친 보이지 않는 띠라,
+// 창 안의 스크롤 막대를 가리지 않고 둥근 모서리에도 잘리지 않는다.
+.window__grip {
+  position: absolute;
+  z-index: 30;
+
+  &--n,
+  &--s {
+    left: 16px;
+    right: 16px;
+    height: 8px;
+    cursor: ns-resize;
+  }
+
+  &--e,
+  &--w {
+    top: 16px;
+    bottom: 16px;
+    width: 8px;
+    cursor: ew-resize;
+  }
+
+  &--n {
+    top: -5px;
+  }
+
+  &--s {
+    bottom: -5px;
+  }
+
+  &--e {
+    right: -6px;
+  }
+
+  &--w {
+    left: -6px;
+  }
+
+  &--ne,
+  &--nw,
+  &--se,
+  &--sw {
+    width: 20px;
+    height: 20px;
+  }
+
+  &--ne {
+    top: -5px;
+    right: -5px;
+    cursor: nesw-resize;
+  }
+
+  &--sw {
+    bottom: -5px;
+    left: -5px;
+    cursor: nesw-resize;
+  }
+
+  &--nw {
+    top: -5px;
+    left: -5px;
+    cursor: nwse-resize;
+  }
+
+  &--se {
+    bottom: -5px;
+    right: -5px;
+    cursor: nwse-resize;
+  }
+}
+
+// 터치 화면(아이패드 가로)에서도 끌기가 스크롤·확대로 빼앗기지 않게.
+@media (min-width: 900px) {
+  [data-window-drag],
+  .window__grip {
+    touch-action: none;
+  }
+}
+
+// ── 신호등 ──────────────────────────────────────────────────────
+// 데스크톱에서 유일한 색. 맥처럼 또렷한 원에 같은 색의 짙은 테두리를 한 겹
+// 두른다(흐린 회색 그림자 대신). 마우스가 다가가면 기호가 떠오른다.
+.traffic {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  &__btn {
+    --ring: rgba(0, 0, 0, 0.2);
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 0.75px var(--ring);
+
+    // 누르기 쉽게 보이지 않는 여백을 둔다(24×24).
+    &::before {
+      content: "";
+      position: absolute;
+      inset: -5px;
+    }
+
+    // 마우스를 대면 뜨는 기호(×, −, 확대): 원에 꽉 차게, 짙고 또렷하게
+    .icon {
+      width: 11px;
+      height: 11px;
+      stroke-width: 3;
+      color: rgba(0, 0, 0, 0.72);
+      opacity: 0;
+    }
+
+    &--close {
+      --ring: #e0443e;
+      background: #ff5f57;
+    }
+
+    &--min {
+      --ring: #dea123;
+      background: #febc2e;
+    }
+
+    &--zoom {
+      --ring: #1aab29;
+      background: #28c840;
+    }
+
+    &:focus-visible {
+      outline-offset: 2px;
+      border-radius: 50%;
+    }
+
+    &:active {
+      filter: brightness(0.86);
+    }
+  }
+
+  &:hover .icon,
+  &:focus-within .icon {
+    opacity: 1;
+  }
+}
+
+// ── Finder ──────────────────────────────────────────────────────
+// 맥의 보통 Finder. 유리가 아니라 불투명한 창이다: 왼쪽에 회색 사이드바(파란
+// 아이콘), 위에 평범한 도구 막대(뒤로·앞으로, 폴더 이름, 검색 칸), 가운데에
+// 줄무늬가 번갈아 드는 목록 보기, 아래에 항목 수를 적은 상태 막대.
+.finder {
+  --cols: 18px minmax(0, 1fr) 120px 104px;
+  top: 26px;
+  left: clamp(16px, 6vw, 120px);
+  width: clamp(560px, 64vw, 1000px);
+  height: clamp(420px, calc(100% - var(--dock-reserve) - 50px), 860px);
+  display: grid;
+  grid-template-columns: 216px minmax(0, 1fr);
+  background: var(--paper);
+
+  // 사이드바: 창 왼쪽을 위아래로 채운 회색 판. 신호등이 그 위에 앉는다.
+  &__sidebar {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0 8px 10px;
+    border-right: var(--hair) solid var(--sep);
+    border-radius: var(--r-window) 0 0 var(--r-window);
+    background: var(--finder-side);
+    overflow-y: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  &__chrome {
+    display: flex;
+    align-items: center;
+    height: 52px;
+    margin-bottom: 4px;
+    padding: 0 8px;
+  }
+
+  &__section {
+    margin-top: 6px;
+
+    &--end {
+      margin-top: auto;
+      padding-top: 12px;
+    }
+  }
+
+  &__heading {
+    margin: 0 0 2px;
+    padding: 0 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-3);
+  }
+
+  &__items {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 6px;
+    font-size: 15.5px;
+    color: var(--ink);
+
+    .icon {
+      width: 16px;
+      height: 16px;
+      color: var(--accent);
+      stroke-width: 1.5;
+    }
+
+    &[aria-current] {
+      background: var(--finder-selected);
+      font-weight: 500;
+    }
+
+    &:focus-visible {
+      outline-offset: -2px;
+    }
+  }
+
+  &__label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__count {
+    font-size: 14px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 0 var(--r-window) var(--r-window) 0;
+    background: var(--paper);
+    overflow: hidden;
+    container: finder / inline-size;
+  }
+
+  // 도구 막대: 목록 위에 붙은 한 줄. 아래에 가는 선.
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: none;
+    height: 52px;
+    padding: 0 12px 0 10px;
+    border-bottom: var(--hair) solid var(--sep);
+    background: var(--finder-bar);
+  }
+
+  &__nav {
+    display: flex;
+    flex: none;
+    gap: 2px;
+  }
+
+  &__navbtn {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--ink-2);
+
+    .icon {
+      width: 16px;
+      height: 16px;
+      stroke-width: 1.8;
+    }
+
+    &:hover:not(:disabled) {
+      background: var(--fill-2);
+      color: var(--ink);
+    }
+
+    &:disabled {
+      color: var(--ink-4);
+    }
+
+    &:focus-visible {
+      outline-offset: -2px;
+    }
+  }
+
+  &__titles {
+    min-width: 0;
+    margin-right: auto;
+  }
+
+  &__title {
+    margin: 0;
+    overflow: hidden;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // 위치마다 한 판(응용 프로그램 · 데스크탑 · Obsidian). 고른 것만 보인다.
+  &__place {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    outline: none;
+  }
+
+  &__list {
+    flex: 1;
+    min-height: 0;
+    padding: 0 0 8px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-padding-top: 26px; // 붙어 있는 열 머리 밑으로 초점 줄이 숨지 않게
+    outline: none;
+  }
+
+  // 상태 막대
+  &__status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    height: 26px;
+    border-top: var(--hair) solid var(--sep);
+    background: var(--finder-bar);
+    font-size: 13px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// 태그: 맥 Finder 의 색 점
+.finder__tag {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin: 0 3px;
+  border-radius: 50%;
+  background: var(--c, var(--ink-3));
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.15);
+}
+
+// 아이콘 보기(응용 프로그램 · 데스크탑): 큰 아이콘과 이름이 줄지어 선다.
+.finder__grid {
+  padding: 18px 16px;
+}
+
+.ficons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: 8px 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ficon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  padding: 6px 4px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+  text-decoration: none;
+  cursor: var(--cursor);
+  -webkit-user-drag: none;
+
+  img {
+    display: block;
+    width: 64px;
+    height: 64px;
+    padding: 3px;
+    border-radius: 12px;
+    -webkit-user-drag: none;
+  }
+
+  // 맥의 아이콘 보기처럼 긴 이름은 두 줄까지 꺾고, 넘치면 끝을 줄인다.
+  &__label {
+    display: -webkit-box;
+    max-width: 100%;
+    padding: 1px 6px;
+    overflow: hidden;
+    border-radius: 5px;
+    font-size: 14.5px;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  // 고른 아이콘: 맥처럼 그림 뒤에 회색 판, 이름에 파란 알약
+  &.is-selected img {
+    background: var(--fill-2);
+  }
+
+  &.is-selected .ficon__label {
+    background: var(--accent);
+    color: #ffffff;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+}
+
+// 폰에만: 사이드바 대신 위치 세 칸
+.finder__places {
+  display: none;
+}
+
+// html 이 준비되기 전(스크립트가 없을 때 포함)에도 고른 항목은 같은 모양이다.
+html:not(.is-ready) .finder__item[aria-current] {
+  background: var(--finder-selected);
+}
+
+// 검색 칸: 맥의 보통 검색 칸(둥근 사각형). 지우기 단추는 label 밖에 둔다.
+.search__field {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  width: 200px;
+  height: 28px;
+  padding: 0 4px 0 8px;
+  border-radius: 7px;
+  background: var(--fill-2);
+  cursor: text;
+  transition: box-shadow 0.15s linear;
+
+  &__icon {
+    width: 14px;
+    height: 14px;
+    color: var(--ink-3);
+    stroke-width: 1.8;
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-size: 15.5px;
+
+    &::placeholder {
+      color: var(--ink-3);
+    }
+
+    &::-webkit-search-cancel-button,
+    &::-webkit-search-decoration {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+  }
+
+  &__clear {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--ink-3);
+
+    .icon {
+      width: 14px;
+      height: 14px;
+    }
+
+    &:hover {
+      color: var(--ink-2);
+    }
+  }
+
+  // 맥의 초점 고리: 강조색이 칸 둘레로 번진다.
+  &:focus-within {
+    background: var(--paper);
+    box-shadow:
+      inset 0 0 0 1px var(--accent),
+      0 0 0 3px var(--accent-ring);
+  }
+}
+
+// 목록 머리: 이름 · 카테고리 · 날짜. 열 사이에 가는 세로 선.
+.columns {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: var(--cols);
+  column-gap: 10px;
+  height: 26px;
+  align-items: center;
+  padding: 0 14px;
+  border-bottom: var(--hair) solid var(--sep);
+  background: var(--paper);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-3);
+
+  > span + span {
+    margin-left: -6px;
+    padding-left: 6px;
+    border-left: var(--hair) solid var(--sep);
+  }
+
+  &__name {
+    grid-column: 1 / 3;
+  }
+}
+
+// 해마다 묶는 머리(Finder 의 '그룹 사용')
+.year {
+  &__label {
+    margin: 0;
+    padding: 12px 14px 4px;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// 한 줄. 줄무늬는 보이는 줄끼리 번갈아 든다(숨은 줄은 세지 않는다).
+.row {
+  &:nth-child(even of :not([hidden])) .row__link {
+    background: var(--finder-stripe);
+  }
+
+  &__link {
+    display: grid;
+    grid-template-columns: var(--cols);
+    column-gap: 10px;
+    align-items: center;
+    height: 28px;
+    padding: 0 14px;
+    font-size: 15.5px;
+    color: var(--ink);
+
+    &:hover {
+      background: var(--fill-2);
+    }
+
+    // 키보드로 고른 줄: 맥의 선택 색(파랑)에 흰 글자
+    &:focus-visible {
+      outline: none;
+      background: var(--accent);
+      color: #ffffff;
+
+      .row__icon,
+      .row__cat,
+      .row__date,
+      .row__cat .icon {
+        color: rgba(255, 255, 255, 0.85);
+      }
+    }
+  }
+
+  // 텍스트 파일 아이콘(FileTxt)
+  &__icon {
+    display: block;
+    width: 18px;
+    height: 18px;
+    -webkit-user-drag: none;
+  }
+
+  &__body {
+    min-width: 0;
+  }
+
+  &__title {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__cat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    font-size: 14.5px;
+    color: var(--ink-2);
+    white-space: nowrap;
+
+    .icon {
+      flex: none;
+      width: 13px;
+      height: 13px;
+      color: var(--accent);
+    }
+  }
+
+  &__date {
+    font-size: 14.5px;
+    color: var(--ink-2);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 64px 0 40px;
+  text-align: center;
+
+  &__icon {
+    width: 40px;
+    height: 40px;
+    color: var(--ink-4);
+    stroke-width: 1.2;
+  }
+
+  &__title {
+    margin: 12px 0 4px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: 15.5px;
+    color: var(--ink-3);
+  }
+}
+
+// 창을 좁히면 카테고리 열부터 접는다. 화면이 아니라 창의 폭을 본다.
+@container finder (max-width: 620px) {
+  .columns,
+  .row__link {
+    --cols: 18px minmax(0, 1fr) 96px;
+  }
+
+  .columns__cat,
+  .row__cat {
+    display: none;
+  }
+}
+
+@container finder (max-width: 440px) {
+  .finder__toolbar .search {
+    width: 140px;
+  }
+}
+
+// ── 문서 창 (글) ────────────────────────────────────────────────
+// 제목 막대는 본문 위에 떠 있다(바탕 없음). 본문이 그 밑으로 스크롤되며 위쪽
+// 가장자리에서 흐려지고, 가운데의 유리 이름표에 비쳐 휜다. 목차는 창 왼쪽에
+// 위아래로 뜬 유리 판이고, 신호등과 목차 단추가 그 위에 앉는다.
+.doc {
+  --w: clamp(640px, 78vw, 1180px);
+  --doc-bar: 52px;
+  --toc-w: 236px;
+  top: 18px;
+  left: calc((100% - var(--w)) / 2);
+  width: var(--w);
+  height: calc(100% - var(--dock-reserve) - 30px);
+
+  &__titlebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: var(--doc-bar);
+    padding: 0 12px 0 20px;
+    border-radius: var(--r-window) var(--r-window) 0 0;
+
+    // 스크롤 가장자리 효과: 본문 쪽(목차 판 오른쪽)만 흐리게 덮는다.
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: -16px;
+      left: 0;
+      right: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: linear-gradient(
+        180deg,
+        var(--edge-fade),
+        var(--edge-fade-mid) 55%,
+        var(--edge-fade-end)
+      );
+      -webkit-backdrop-filter: blur(1.5px);
+      backdrop-filter: blur(1.5px);
+      -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent);
+      mask-image: linear-gradient(180deg, #000 60%, transparent);
+      pointer-events: none;
+    }
+  }
+
+  &--toc &__titlebar::before {
+    left: calc(var(--toc-w) + 10px);
+  }
+
+  &__back {
+    display: none;
+  }
+
+  // 가운데의 이름표: 문서 이름을 담은 유리 알약. 본문이 그 밑을 지나간다.
+  &__proxy {
+    position: absolute;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    max-width: calc(100% - 300px);
+    height: 34px;
+    padding: 0 16px 0 10px;
+    border-radius: 999px;
+    font-size: 16px;
+    font-weight: 600;
+    white-space: nowrap;
+    transform: translateX(-50%);
+  }
+
+  &--toc &__proxy {
+    left: calc(50% + (var(--toc-w) + 10px) / 2);
+    max-width: calc(100% - var(--toc-w) - 120px);
+  }
+
+  &__icon {
+    width: 16px;
+    height: 16px;
+    color: var(--ink-3);
+  }
+
+  &__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__kind {
+    flex: none;
+    font-weight: 400;
+    color: var(--ink-3);
+  }
+
+  &__tool {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 28px;
+    margin-left: 4px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--ink-3);
+    transition:
+      background-color 0.15s linear,
+      color 0.15s linear;
+
+    .icon {
+      width: 19px;
+      height: 19px;
+    }
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.06);
+      color: var(--ink);
+    }
+
+    &[aria-pressed="true"] {
+      color: var(--ink);
+    }
+  }
+
+  &__body {
+    position: relative;
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    border-radius: var(--r-window);
+    overflow: hidden;
+  }
+
+  // 목차: 넓은 창에서는 창 왼쪽에 위아래로 뜬 유리 판. 맨 위 자리는 신호등 몫이다.
+  &__toc {
+    flex: none;
+    width: var(--toc-w);
+    margin: 8px 0 8px 8px;
+    padding: calc(var(--doc-bar) - 4px) 8px 12px;
+    border-radius: 16px;
+    overflow-y: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  &__toc-heading {
+    margin: 0 0 6px;
+    padding: 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-3);
+  }
+
+  // 좁은 창에서는 본문 위에 뜨는 판
+  &--narrow &__toc {
+    position: absolute;
+    top: var(--doc-bar);
+    left: 10px;
+    z-index: 4;
+    width: 290px;
+    max-width: calc(100% - 20px);
+    max-height: 72%;
+    margin: 0;
+    padding-top: 12px;
+    box-shadow:
+      inset 0 0 0 var(--hair) rgba(0, 0, 0, 0.14),
+      0 18px 40px -12px rgba(0, 0, 0, 0.3);
+    transform-origin: top left;
+    animation: sheet-in 0.4s var(--spring-fallback) both;
+    animation-timing-function: var(--spring);
+  }
+
+  &--narrow &__titlebar::before {
+    left: 0;
+  }
+
+  &--narrow &__proxy {
+    left: 50%;
+    max-width: calc(100% - 240px);
+  }
+
+  // 본문: 떠 있는 제목 막대 밑에서부터 시작해, 그 밑으로 스크롤된다.
+  &__scroll {
+    flex: 1;
+    min-width: 0;
+    padding-top: var(--doc-bar);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-padding-top: calc(var(--doc-bar) + 12px);
+    outline: none;
+  }
+}
+
+.toc {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  .lens {
+    border-radius: 9px;
+  }
+
+  &__link {
+    display: block;
+    padding: 6px 10px;
+    border-radius: 9px;
+    font-size: 15.5px;
+    line-height: 1.4;
+    color: var(--ink-2);
+    transition: color 0.15s linear;
+
+    &:hover {
+      color: var(--ink);
+    }
+
+    &--sub {
+      padding-left: 22px;
+      font-size: 15px;
+      color: var(--ink-3);
+    }
+
+    &[aria-current] {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    &:focus-visible {
+      outline-offset: -2px;
+    }
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// ── 경고 창 (없는 페이지) ───────────────────────────────────────
+.alert {
+  top: calc(42% - 150px);
+  left: calc(50% - 170px);
+  width: 340px;
+  align-items: center;
+  padding: 26px 22px 18px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(30px) saturate(1.8);
+  backdrop-filter: blur(30px) saturate(1.8);
+
+  &__icon {
+    display: block;
+    width: 64px;
+    height: 64px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.3);
+  }
+
+  &__title {
+    margin: 14px 0 6px;
+    font-size: 20.5px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  &__desc {
+    margin: 0 0 20px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+
+    .button {
+      flex: 1;
+    }
+  }
+}
+
+// ── 좁은 화면: 창이 화면을 채운다 ───────────────────────────────
+@media (max-width: 899px) {
+  .window,
+  .window.is-zoomed,
+  .window.has-frame {
+    top: 6px;
+    left: var(--safe-l);
+    width: calc(100% - var(--safe-l) - var(--safe-r));
+    height: calc(100% - var(--dock-reserve) - 6px);
+  }
+
+  .traffic,
+  .window__grip {
+    display: none;
+  }
+
+  .finder {
+    grid-template-columns: minmax(0, 1fr);
+
+    &__sidebar,
+    .columns {
+      display: none;
+    }
+
+    &__toolbar {
+      flex-wrap: wrap;
+      height: auto;
+      gap: 10px 8px;
+      padding: 12px 12px 10px;
+    }
+
+    &__nav {
+      display: none;
+    }
+
+    &__title {
+      font-size: 26.5px;
+    }
+
+    .search {
+      width: 100%;
+      height: 36px;
+
+      &__input {
+        font-size: 19px; // 16px 아래면 iOS 가 확대해 버린다
+      }
+    }
+
+    &__list {
+      scroll-padding-top: 0;
+    }
+
+    &__places {
+      display: flex;
+      width: 100%;
+      padding: 2px;
+      border-radius: 9px;
+      background: var(--fill-2);
+
+      a {
+        flex: 1;
+        padding: 6px 4px;
+        border-radius: 7px;
+        font-size: 14.5px;
+        font-weight: 600;
+        text-align: center;
+        color: var(--ink-2);
+        text-decoration: none;
+
+        &[aria-current] {
+          background: var(--paper);
+          color: var(--ink);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        }
+      }
+    }
+  }
+
+  // 폰의 목록: 제목 한 줄, 그 아래 카테고리와 날짜
+  .row__link {
+    grid-template-columns: 16px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    row-gap: 3px;
+    height: auto;
+    padding: 10px 14px;
+  }
+
+  .row__title {
+    white-space: normal;
+  }
+
+  .row__cat,
+  .row__date {
+    grid-row: 2;
+    grid-column: 2;
+  }
+
+  .row__cat {
+    display: flex;
+  }
+
+  .row__date {
+    justify-self: end;
+  }
+
+  .doc {
+    &__titlebar {
+      position: relative;
+      gap: 8px;
+      height: 52px;
+      padding: 0 8px;
+      background: rgba(255, 255, 255, 0.9);
+
+      &::before {
+        display: none;
+      }
+    }
+
+    &__scroll {
+      padding-top: 0;
+    }
+
+    &__back {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+
+      .icon {
+        width: 20px;
+        height: 20px;
+        stroke-width: 1.6;
+      }
+    }
+
+    &__proxy,
+    &--toc &__proxy,
+    &--narrow &__proxy {
+      position: static;
+      flex: 1;
+      max-width: none;
+      min-width: 0;
+      transform: none;
+    }
+
+    &__kind {
+      display: none;
+    }
+
+    &__tool {
+      margin-left: 0;
+    }
+  }
+
+  .alert {
+    top: 20%;
+    left: 50%;
+    width: calc(100% - 48px);
+    max-width: 340px;
+    height: auto;
+    transform: translateX(-50%);
+  }
+}
+
+// 스크롤 칸(글 목록 · 본문)도 키보드로 들어오면 테두리를 그린다.
+// 페이지를 열 때 스크립트가 넣어 준 초점(data-autofocus)에는 그리지 않는다.
+.finder__list:focus-visible:not([data-autofocus]),
+.doc__scroll:focus-visible:not([data-autofocus]) {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+  border-radius: 0;
+}
+
+// 가로로 눕힌 폰처럼 낮은 화면: Finder 머리를 한 줄로 줄여 목록에 자리를 준다.
+@media (max-width: 899px) and (max-height: 500px) {
+  .finder__toolbar {
+    flex-wrap: nowrap;
+    padding: 8px 12px;
+  }
+
+  .finder .search {
+    flex: 1;
+    width: auto;
+  }
+}
+
+// ── Obsidian ────────────────────────────────────────────────────
+// 글을 노트처럼 읽는 창(obsidian.js). 왼쪽은 보관함의 파일 탐색기(카테고리가
+// 폴더, 글이 노트), 오른쪽은 읽기 보기(속성 표와 본문), 아래에 상태 막대.
+// 색은 Obsidian 의 기본 테마: 옅은 회색 사이드바, 보라 강조색.
+.window.obsidian {
+  overflow: visible;
+}
+
+.obsidian {
+  --obs-bg: #ffffff;
+  --obs-side: #f6f6f6;
+  --obs-line: #e0e0e0;
+  --obs-hover: rgba(0, 0, 0, 0.05);
+  --obs-active: rgba(0, 0, 0, 0.085);
+  --obs-accent: #7852ee;
+  --obs-accent-soft: rgba(120, 82, 238, 0.12);
+  top: 40px;
+  left: clamp(16px, calc(50% - 470px), 240px);
+  width: clamp(620px, 66vw, 980px);
+  height: clamp(420px, calc(100% - var(--dock-reserve) - 70px), 820px);
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  background: var(--obs-bg);
+
+  // ── 파일 탐색기
+  &__side {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border-right: var(--hair) solid var(--obs-line);
+    border-radius: var(--r-window) 0 0 var(--r-window);
+    background: var(--obs-side);
+  }
+
+  &__chrome {
+    display: flex;
+    flex: none;
+    align-items: center;
+    height: 44px;
+    padding: 0 16px;
+  }
+
+  &__vault {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 2px 16px 10px;
+  }
+
+  &__vault-name {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  &__count {
+    font-size: 14px;
+    color: var(--ink-3);
+  }
+
+  &__search {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    margin: 0 10px 8px;
+    padding: 0 9px;
+    border-radius: 6px;
+    background: var(--obs-bg);
+    box-shadow: inset 0 0 0 var(--hair) var(--obs-line);
+    color: var(--ink-3);
+
+    .icon {
+      width: 14px;
+      height: 14px;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: var(--ink);
+      font: inherit;
+      font-size: 15.5px;
+      outline: none;
+    }
+
+    &:focus-within {
+      box-shadow:
+        inset 0 0 0 var(--hair) var(--obs-accent),
+        0 0 0 3px var(--obs-accent-soft);
+    }
+  }
+
+  &__tree {
+    flex: 1;
+    min-height: 0;
+    padding: 0 8px 12px;
+    overflow-y: auto;
+    font-size: 15.5px;
+
+    ul {
+      margin: 0 0 4px 13px;
+      padding: 0 0 0 6px;
+      border-left: 1px solid var(--obs-line);
+      list-style: none;
+    }
+  }
+
+  &__folder summary {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 26px;
+    padding: 0 6px;
+    border-radius: 5px;
+    font-weight: 600;
+    color: var(--ink-2);
+    cursor: var(--cursor);
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &:hover {
+      background: var(--obs-hover);
+    }
+  }
+
+  &__chev {
+    width: 12px;
+    height: 12px;
+    stroke-width: 1.8;
+    color: var(--ink-3);
+    transition: transform 0.15s var(--ease-out);
+
+    [open] > summary > & {
+      transform: rotate(90deg);
+    }
+  }
+
+  &__note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    height: 26px;
+    padding: 0 8px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 5px;
+    background: none;
+    color: var(--ink-2);
+    font: inherit;
+    font-size: 15.5px;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover {
+      background: var(--obs-hover);
+      color: var(--ink);
+    }
+
+    &[aria-current] {
+      background: var(--obs-active);
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--obs-accent);
+      outline-offset: -2px;
+    }
+  }
+
+  &__hint {
+    margin: 10px 8px;
+    font-size: 15px;
+    color: var(--ink-3);
+  }
+
+  // ── 읽기 보기
+  &__main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 0 var(--r-window) var(--r-window) 0;
+    overflow: hidden;
+  }
+
+  &__bar {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 16px;
+    border-bottom: var(--hair) solid var(--obs-line);
+  }
+
+  &__tab {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    font-size: 15.5px;
+    font-weight: 600;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--ink-2);
+  }
+
+  &__back,
+  &__close {
+    display: none;
+    align-items: center;
+    gap: 2px;
+    height: 32px;
+    padding: 0 6px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--obs-accent);
+    font: inherit;
+    font-size: 18px;
+
+    .icon {
+      width: 18px;
+      height: 18px;
+      stroke-width: 1.8;
+    }
+  }
+
+  &__view {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    outline: none;
+  }
+
+  &__note-view {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 36px 44px 56px;
+  }
+
+  &__title {
+    margin: 0 0 18px;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.03em;
+    word-break: keep-all;
+  }
+
+  // 속성 표(Obsidian 의 Properties)
+  &__props {
+    display: grid;
+    gap: 2px;
+    margin: 0 0 28px;
+    padding: 0 0 18px;
+    border-bottom: 1px solid var(--obs-line);
+    font-size: 16px;
+
+    div {
+      display: grid;
+      grid-template-columns: 88px minmax(0, 1fr);
+      gap: 12px;
+      padding: 5px 6px;
+      border-radius: 5px;
+
+      &:hover {
+        background: var(--obs-hover);
+      }
+    }
+
+    dt {
+      color: var(--ink-3);
+    }
+
+    dd {
+      margin: 0;
+      color: var(--ink-body);
+    }
+  }
+
+  &__tag {
+    display: inline-block;
+    padding: 1px 9px;
+    border-radius: 999px;
+    background: var(--obs-accent-soft);
+    color: var(--obs-accent);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      background: var(--obs-accent);
+      color: #ffffff;
+    }
+  }
+
+  .post-content a {
+    color: var(--obs-accent);
+  }
+
+  &__open {
+    margin: 36px 0 0;
+    font-size: 16px;
+
+    a {
+      color: var(--obs-accent);
+      font-weight: 600;
+    }
+  }
+
+  &__status {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: flex-end;
+    height: 24px;
+    padding: 0 14px;
+    border-top: var(--hair) solid var(--obs-line);
+    font-size: 14px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+html[data-theme="dark"] .obsidian {
+  --obs-bg: #1e1e1e;
+  --obs-side: #262626;
+  --obs-line: #363636;
+  --obs-hover: rgba(255, 255, 255, 0.06);
+  --obs-active: rgba(255, 255, 255, 0.1);
+  --obs-accent: #a88bfa;
+  --obs-accent-soft: rgba(168, 139, 250, 0.16);
+}
+
+// 폰: 탐색기와 읽기 보기가 한 화면씩. 노트를 고르면 읽기 보기로 넘어가고,
+// '‹ 노트'로 돌아온다. 신호등이 없으니 오른쪽 위에 닫기 단추.
+@media (max-width: 899px) {
+  .obsidian,
+  .obsidian.has-frame,
+  .obsidian.is-zoomed {
+    top: 6px;
+    left: var(--safe-l);
+    width: calc(100% - var(--safe-l) - var(--safe-r));
+    height: calc(100% - var(--dock-reserve) - 6px);
+  }
+
+  .obsidian {
+    grid-template-columns: minmax(0, 1fr);
+
+    &__side {
+      border-right: 0;
+      border-radius: var(--r-window);
+    }
+
+    &__chrome {
+      display: none;
+    }
+
+    &__vault {
+      padding: 16px 56px 10px 16px; // 오른쪽 위 닫기 단추 자리
+    }
+
+    &__vault-name {
+      font-size: 26.5px;
+    }
+
+    &__search {
+      height: 36px;
+
+      input {
+        font-size: 19px; // 16px 아래면 iOS 가 확대해 버린다
+      }
+    }
+
+    &__note,
+    &__folder summary {
+      height: 36px;
+      font-size: 18px;
+    }
+
+    &__main {
+      display: none;
+      border-radius: var(--r-window);
+    }
+
+    &.is-reading &__side {
+      display: none;
+    }
+
+    &.is-reading &__main {
+      display: flex;
+    }
+
+    &__back,
+    &__close {
+      display: inline-flex;
+    }
+
+    &__note-view {
+      padding: 22px 18px 40px;
+    }
+
+    &__title {
+      font-size: 29px;
+    }
+  }
+
+  // 탐색기 화면에서도 닫을 수 있게: 보관함 이름 줄 오른쪽에 닫기 단추를 띄운다.
+  .obsidian:not(.is-reading) .obsidian__main {
+    display: flex;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: auto;
+    height: auto;
+    background: none;
+
+    > :not(.obsidian__bar),
+    .obsidian__bar > :not(.obsidian__close) {
+      display: none;
+    }
+
+    .obsidian__bar {
+      height: auto;
+      padding: 0;
+      border: 0;
+    }
+  }
+}
+
+// ── 게임: 개인 프로젝트 ─────────────────────────────────────────
+// Launchpad 처럼 유리 판(About 창과 같은 유리) 위에 앱 아이콘이 줄지어 선다.
+// 누르면 그 프로젝트를 새 탭에서 연다(games.js). 아래 상태 막대에 설명.
+.window.games {
+  overflow: visible;
+}
+
+.games {
+  top: 70px;
+  left: clamp(16px, calc(50% - 300px), 50%);
+  width: 600px;
+  height: 430px;
+  display: flex;
+  flex-direction: column;
+  background: var(--glass-window);
+  -webkit-backdrop-filter: blur(34px) saturate(1.8);
+  backdrop-filter: blur(34px) saturate(1.8);
+
+  &__bar {
+    display: grid;
+    flex: none;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    height: 46px;
+    padding: 0 16px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink-2);
+  }
+
+  &__close {
+    display: none;
+    justify-self: end;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--fill-2);
+    color: var(--ink-2);
+
+    .icon {
+      width: 14px;
+      height: 14px;
+      margin: auto;
+      stroke-width: 2;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    flex: 1;
+    grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+    align-content: start;
+    gap: 6px;
+    min-height: 0;
+    margin: 0;
+    padding: 10px 22px 18px;
+    overflow-y: auto;
+    list-style: none;
+  }
+
+  &__app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 6px 12px;
+    border-radius: 14px;
+    color: var(--ink);
+    text-align: center;
+    text-decoration: none;
+    -webkit-user-drag: none;
+    transition: background-color 0.12s linear;
+
+    &:hover {
+      background: var(--fill);
+    }
+
+    &:active .games__icon {
+      filter: brightness(0.8);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+  }
+
+  &__icon {
+    display: block;
+    width: 88px;
+    height: 88px;
+    transition: transform 0.25s var(--ease-out);
+
+    .games__app:hover & {
+      transform: translateY(-2px) scale(1.04);
+    }
+  }
+
+  &__name {
+    margin-top: 4px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  &__desc {
+    margin-top: 1px;
+    font-size: 14px;
+    color: var(--ink-3);
+  }
+
+  &__status {
+    display: flex;
+    flex: none;
+    align-items: center;
+    height: 28px;
+    padding: 0 16px;
+    overflow: hidden;
+    border-top: var(--hair) solid var(--sep);
+    font-size: 14.5px;
+    color: var(--ink-3);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .games {
+    background: var(--paper);
+  }
+}
+
+@media (max-width: 899px) {
+  .games,
+  .games.has-frame,
+  .games.is-zoomed {
+    top: 6px;
+    left: var(--safe-l);
+    width: calc(100% - var(--safe-l) - var(--safe-r));
+    height: calc(100% - var(--dock-reserve) - 6px);
+  }
+
+  .games {
+    &__bar {
+      height: 54px;
+    }
+
+    &__title {
+      grid-column: 2;
+      font-size: 20.5px;
+    }
+
+    &__close {
+      display: grid;
+      grid-column: 3;
+    }
+
+    &__grid {
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      padding: 6px 12px 16px;
+    }
+
+    &__icon {
+      width: 76px;
+      height: 76px;
+    }
+  }
+}
+
+// ── 음악 플레이어(Spotify) ──────────────────────────────────────
+// About 창과 같은 유리 창. 왼쪽에 앨범 그림, 오른쪽에 곡 이름 · 진행 막대 ·
+// 조작 · 음량(music.js). 소리를 내는 유튜브 영상은 앨범 그림 밑에 같은 크기로
+// 깔려 있다. 강조색은 Spotify 의 초록.
+.music {
+  --green: #1db954;
+  top: 90px;
+  left: clamp(16px, calc(50% - 300px), 50%);
+  width: 600px;
+  display: flex;
+  flex-direction: column;
+  background: var(--glass-window);
+  -webkit-backdrop-filter: blur(34px) saturate(1.8);
+  backdrop-filter: blur(34px) saturate(1.8);
+
+  &__bar {
+    display: grid;
+    flex: none;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    height: 48px;
+    padding: 0 16px;
+  }
+
+  &__app {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink-2);
+  }
+
+  &__close {
+    display: none;
+    justify-self: end;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--fill-2);
+    color: var(--ink-2);
+
+    .icon {
+      width: 14px;
+      height: 14px;
+      margin: auto;
+      stroke-width: 2;
+    }
+  }
+
+  &__main {
+    display: flex;
+    gap: 22px;
+    padding: 4px 22px 22px;
+  }
+
+  // 앨범 그림(밑에 유튜브 영상이 같은 크기로 깔려 있다)
+  &__art {
+    position: relative;
+    flex: none;
+    width: 230px;
+    height: 230px;
+    overflow: hidden;
+    border-radius: 14px;
+    box-shadow: 0 16px 36px -14px rgba(0, 0, 0, 0.6);
+    transition: transform 0.4s var(--ease-out);
+  }
+
+  // 멈추면 그림이 조금 작아진다(음악 앱의 '지금 재생 중'처럼)
+  &:not(.is-playing) &__art {
+    transform: scale(0.95);
+  }
+
+  &__video,
+  &__video iframe,
+  &__video > div {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  &__video {
+    pointer-events: none;
+  }
+
+  &__cover {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    -webkit-user-drag: none;
+  }
+
+  &__now {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  &__meta {
+    min-width: 0;
+  }
+
+  &__title,
+  &__artist {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__title {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  &__artist {
+    margin-top: 2px;
+    font-size: 15px;
+    color: var(--ink-2);
+  }
+
+  &__count {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  // 진행 막대와 음량: 가는 줄, 지난 만큼 진하게
+  &__seek {
+    --p: 0%;
+    display: block;
+    width: 100%;
+    height: 16px;
+    margin: 0;
+    background: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+
+    &::-webkit-slider-runnable-track {
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--ink) var(--p), var(--fill-2) var(--p));
+    }
+
+    &::-moz-range-track {
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--ink) var(--p), var(--fill-2) var(--p));
+    }
+
+    &::-webkit-slider-thumb {
+      width: 12px;
+      height: 12px;
+      margin-top: -4px;
+      border-radius: 50%;
+      background: var(--ink);
+      opacity: 0;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    &::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border: 0;
+      border-radius: 50%;
+      background: var(--ink);
+      opacity: 0;
+    }
+
+    &:hover::-webkit-slider-runnable-track {
+      background: linear-gradient(90deg, var(--green) var(--p), var(--fill-2) var(--p));
+    }
+
+    &:hover::-webkit-slider-thumb,
+    &:focus-visible::-webkit-slider-thumb {
+      opacity: 1;
+    }
+
+    &:hover::-moz-range-thumb,
+    &:focus-visible::-moz-range-thumb {
+      opacity: 1;
+    }
+  }
+
+  &__times {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+  }
+
+  &__btn {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--ink);
+
+    svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    &:hover {
+      background: var(--fill);
+    }
+
+    &:active {
+      transform: scale(0.92);
+    }
+
+    &--play {
+      width: 54px;
+      height: 54px;
+      background: #ffffff;
+      color: #000000;
+      box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.45);
+
+      svg {
+        width: 26px;
+        height: 26px;
+      }
+
+      &:hover {
+        background: #ffffff;
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  &__volume {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink-3);
+
+    svg {
+      flex: none;
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+  }
+
+  &__status {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-3);
+
+    &:empty {
+      display: none;
+    }
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .music {
+    background: var(--paper);
+  }
+}
+
+@media (max-width: 899px) {
+  .music,
+  .music.has-frame,
+  .music.is-zoomed {
+    top: 6px;
+    left: var(--safe-l);
+    width: calc(100% - var(--safe-l) - var(--safe-r));
+    height: auto;
+    max-height: calc(100% - var(--dock-reserve) - 6px);
+  }
+
+  .music {
+    &__bar {
+      height: 54px;
+    }
+
+    &__app {
+      grid-column: 2;
+    }
+
+    &__close {
+      display: grid;
+      grid-column: 3;
+    }
+
+    // 폰: 위에 앨범 그림, 아래로 곡 이름과 조작
+    &__main {
+      flex-direction: column;
+      align-items: center;
+      overflow-y: auto;
+    }
+
+    &__art {
+      width: min(100%, 300px);
+      height: auto;
+      aspect-ratio: 1;
+    }
+
+    &__now {
+      align-self: stretch;
+    }
+  }
+}
+
+// Obsidian 파일 탐색기의 노트: 텍스트 파일 아이콘(FileTxt)과 제목
+.obsidian__note > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.obsidian__file {
+  display: block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  -webkit-user-drag: none;
+}
+
+// ── 메모 ────────────────────────────────────────────────────────
+// 맥의 메모 앱: 왼쪽 목록(맨 위 '고정됨'), 오른쪽 종이. 강조색은 메모의 노랑.
+.window.notes {
+  overflow: visible;
+}
+
+.notes {
+  --notes-yellow: #e6b400;
+  --notes-pick: rgba(255, 196, 0, 0.32);
+  top: 60px;
+  left: clamp(16px, calc(50% - 420px), 50%);
+  width: clamp(560px, 58vw, 860px);
+  height: clamp(400px, calc(100% - var(--dock-reserve) - 90px), 640px);
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  background: var(--paper);
+
+  &__side {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border-right: var(--hair) solid var(--sep);
+    border-radius: var(--r-window) 0 0 var(--r-window);
+    background: var(--glass-window);
+    -webkit-backdrop-filter: blur(34px) saturate(1.8);
+    backdrop-filter: blur(34px) saturate(1.8);
+  }
+
+  &__chrome {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px;
+    padding: 0 16px;
+  }
+
+  &__close,
+  &__compose {
+    display: none;
+  }
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 0 18px 8px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  &__count {
+    font-size: 13.5px;
+    color: var(--ink-3);
+  }
+
+  &__search {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    margin: 0 12px 8px;
+    padding: 0 10px;
+    border-radius: 8px;
+    background: var(--fill-2);
+    color: var(--ink-3);
+
+    .icon {
+      width: 15px;
+      height: 15px;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      background: none;
+      color: var(--ink);
+      font: inherit;
+      font-size: 15px;
+      outline: none;
+    }
+
+    &:focus-within {
+      box-shadow: 0 0 0 3px var(--notes-pick);
+    }
+  }
+
+  &__list {
+    flex: 1;
+    min-height: 0;
+    padding: 0 10px 12px;
+    overflow-y: auto;
+  }
+
+  &__group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 10px 8px 4px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink-3);
+  }
+
+  &__pin {
+    width: 13px;
+    height: 13px;
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    padding: 9px 12px;
+    border: 0;
+    border-radius: 9px;
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+
+    & + & {
+      box-shadow: 0 calc(-1 * var(--hair)) 0 var(--sep);
+    }
+
+    &:hover {
+      background: var(--fill);
+    }
+
+    &.is-current {
+      background: var(--notes-pick);
+      box-shadow: none;
+    }
+
+    &.is-current + & {
+      box-shadow: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--notes-yellow);
+      outline-offset: -2px;
+    }
+
+    .icon {
+      display: inline-block;
+      width: 13px;
+      height: 13px;
+      margin-right: 4px;
+      vertical-align: -1px;
+      color: var(--ink-3);
+    }
+  }
+
+  &__item-title,
+  &__item-meta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__item-title {
+    font-size: 15.5px;
+    font-weight: 700;
+  }
+
+  &__item-meta {
+    font-size: 13.5px;
+    color: var(--ink-3);
+  }
+
+  &__item-date {
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+
+  &__empty {
+    margin: 16px 10px;
+    font-size: 14px;
+    color: var(--ink-3);
+  }
+
+  // ── 종이
+  &__main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 0 var(--r-window) var(--r-window) 0;
+    overflow: hidden;
+  }
+
+  &__bar {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 4px;
+    height: 48px;
+    padding: 0 12px;
+  }
+
+  &__spacer {
+    flex: 1;
+  }
+
+  &__tool {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 32px;
+    min-width: 34px;
+    padding: 0 7px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--ink-2);
+    font: inherit;
+    font-size: 16px;
+
+    .icon {
+      width: 19px;
+      height: 19px;
+      stroke-width: 1.5;
+    }
+
+    &:hover:not(:disabled) {
+      background: var(--fill-2);
+      color: var(--ink);
+    }
+
+    &:disabled {
+      color: var(--ink-4);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--notes-yellow);
+      outline-offset: -2px;
+    }
+  }
+
+  &__back {
+    display: none;
+    color: var(--notes-yellow);
+  }
+
+  &__page {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0 34px 24px;
+    overflow-y: auto;
+  }
+
+  &__date {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin: 0 0 14px;
+    font-size: 13.5px;
+    color: var(--ink-3);
+
+    .icon {
+      width: 13px;
+      height: 13px;
+    }
+  }
+
+  &__doc {
+    color: var(--ink-body);
+  }
+
+  &__doc-title {
+    margin: 0 0 14px;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  &__bullets {
+    margin: 0;
+    padding-left: 1.2em;
+    font-size: 18px;
+    line-height: 1.75;
+
+    li::marker {
+      color: var(--notes-yellow);
+    }
+  }
+
+  &__editor {
+    flex: 1;
+    width: 100%;
+    min-height: 260px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink-body);
+    font: inherit;
+    font-size: 18px;
+    line-height: 1.7;
+    resize: none;
+    outline: none;
+
+    &::placeholder {
+      color: var(--ink-4);
+    }
+  }
+}
+
+html[data-theme="dark"] .notes {
+  --notes-pick: rgba(255, 204, 0, 0.26);
+}
+
+@media (max-width: 899px) {
+  .notes,
+  .notes.has-frame,
+  .notes.is-zoomed {
+    top: 6px;
+    left: var(--safe-l);
+    width: calc(100% - var(--safe-l) - var(--safe-r));
+    height: calc(100% - var(--dock-reserve) - 6px);
+  }
+
+  // 폰: 목록과 종이가 한 화면씩. 메모를 고르면 종이로, '‹ 메모'로 돌아온다.
+  .notes {
+    grid-template-columns: minmax(0, 1fr);
+
+    &__side {
+      border-right: 0;
+      border-radius: var(--r-window);
+    }
+
+    // 폰의 목록 화면에도 새 메모 단추
+    &__compose {
+      display: inline-flex;
+      margin-left: auto;
+      color: var(--notes-yellow);
+    }
+
+    &__close {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-left: 6px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: var(--fill-2);
+      color: var(--ink-2);
+
+      .icon {
+        width: 14px;
+        height: 14px;
+        stroke-width: 2;
+      }
+    }
+
+    &__search input {
+      font-size: 19px; // 16px 아래면 iOS 가 확대해 버린다
+    }
+
+    &__main {
+      display: none;
+      border-radius: var(--r-window);
+    }
+
+    &.is-reading &__side {
+      display: none;
+    }
+
+    &.is-reading &__main {
+      display: flex;
+    }
+
+    &__back {
+      display: inline-flex;
+    }
+
+    &__page {
+      padding: 0 20px 20px;
+    }
+
+    &__editor {
+      font-size: 19px;
+    }
+  }
+}
+
+// ── 터미널 ──────────────────────────────────────────────────────
+// 맥의 기본 터미널(Basic 프로필): 가운데 제목 막대, 고정폭 글자, 깜빡이는 막대 커서.
+.window.term {
+  overflow: visible;
+}
+
+.term {
+  --term-bg: #ffffff;
+  --term-ink: #1d1d1f;
+  --term-dim: rgba(0, 0, 0, 0.5);
+  --term-dir: #1f5fd6;
+  --term-app: #b1238a;
+  --term-err: #d1242f;
+  top: 110px;
+  left: clamp(16px, calc(50% - 330px), 50%);
+  width: clamp(460px, 48vw, 720px);
+  height: clamp(320px, 52vh, 520px);
+  display: flex;
+  flex-direction: column;
+  background: var(--term-bg);
+
+  &__bar {
+    display: grid;
+    flex: none;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    height: 38px;
+    padding: 0 14px;
+    border-bottom: var(--hair) solid var(--sep);
+    border-radius: var(--r-window) var(--r-window) 0 0;
+    background: var(--finder-bar);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+
+  &__close {
+    display: none;
+  }
+
+  &__body {
+    flex: 1;
+    min-height: 0;
+    padding: 8px 10px 12px;
+    overflow-y: auto;
+    border-radius: 0 0 var(--r-window) var(--r-window);
+    color: var(--term-ink);
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 15px;
+    line-height: 1.45;
+    cursor: text;
+  }
+
+  &__line {
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  &__row {
+    display: flex;
+    gap: 0.6ch;
+  }
+
+  &__prompt {
+    white-space: pre;
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    caret-color: var(--term-ink);
+    outline: none;
+  }
+
+  &__dim {
+    color: var(--term-dim);
+  }
+
+  &__dir {
+    color: var(--term-dir);
+    font-weight: 700;
+  }
+
+  &__app {
+    color: var(--term-app);
+  }
+
+  &__cmd {
+    color: var(--term-dir);
+  }
+
+  &__err {
+    color: var(--term-err);
+  }
+
+  &__logo {
+    color: #ff9500;
+    white-space: pre;
+  }
+}
+
+html[data-theme="dark"] .term {
+  --term-bg: #1e1e1e;
+  --term-ink: #e6e6e6;
+  --term-dim: rgba(255, 255, 255, 0.5);
+  --term-dir: #6cb6ff;
+  --term-app: #ff7ad9;
+  --term-err: #ff6b6b;
+}
+
+@media (max-width: 899px) {
+  .term,
+  .term.has-frame,
+  .term.is-zoomed {
+    top: 6px;
+    left: var(--safe-l);
+    width: calc(100% - var(--safe-l) - var(--safe-r));
+    height: calc(100% - var(--dock-reserve) - 6px);
+  }
+
+  .term {
+    &__bar {
+      height: 50px;
+    }
+
+    &__title {
+      grid-column: 2;
+      font-size: 14px;
+    }
+
+    &__close {
+      display: grid;
+      grid-column: 3;
+      justify-self: end;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: var(--fill-2);
+      color: var(--ink-2);
+
+      .icon {
+        width: 13px;
+        height: 13px;
+        stroke-width: 2;
+      }
+    }
+
+    &__body,
+    &__input {
+      font-size: 16px; // 16px 아래면 iOS 가 확대해 버린다
+    }
+  }
+}
+
+// ── Apache Druid ────────────────────────────────────────────────
+// 데스크톱의 'Apache Druid' 아이콘이 여는 창(druid.js). 안은 /druid/ 쪽을 띄운
+// iframe 이다. 안쪽도 블로그의 모양(라이트 · 다크)을 따르므로 제목 막대는 다른
+// 창과 같다. 그림이 넓을수록 잘 보이니 처음부터 크게 연다.
+.window.druid {
+  overflow: visible;
+}
+
+.druid {
+  top: 16px;
+  left: clamp(12px, calc(50% - 680px), 50%);
+  width: min(1360px, calc(100% - 24px));
+  height: calc(100% - var(--dock-reserve) - 22px);
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+
+  &__bar {
+    display: grid;
+    flex: none;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    height: 40px;
+    padding: 0 12px 0 14px;
+    border-bottom: var(--hair) solid var(--sep);
+    border-radius: var(--r-window) var(--r-window) 0 0;
+    background: var(--finder-bar);
+  }
+
+  &__title {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: 14.5px;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+
+  &__tools {
+    display: flex;
+    justify-self: end;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__pop {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    color: var(--ink-3);
+
+    svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    &:hover {
+      background: var(--fill-2);
+      color: var(--ink);
+    }
+  }
+
+  &__close {
+    display: none;
+  }
+
+  &__frame {
+    display: block;
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    border: 0;
+    border-radius: 0 0 var(--r-window) var(--r-window);
+    background: var(--paper);
+  }
+}
+
+// 창을 끌거나 크기를 바꾸는 동안에는 iframe 이 마우스를 가로채지 않게.
+body:has(.window.is-dragging, .window.is-resizing) .druid__frame {
+  pointer-events: none;
+}
+
+@media (max-width: 899px) {
+  .druid,
+  .druid.has-frame,
+  .druid.is-zoomed {
+    top: 6px;
+    left: var(--safe-l);
+    width: calc(100% - var(--safe-l) - var(--safe-r));
+    height: calc(100% - var(--dock-reserve) - 6px);
+  }
+
+  .druid {
+    &__bar {
+      height: 50px;
+    }
+
+    &__title {
+      grid-column: 2;
+    }
+
+    &__close {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: var(--fill-2);
+      color: var(--ink-2);
+
+      .icon {
+        width: 13px;
+        height: 13px;
+        stroke-width: 2;
+      }
+    }
+  }
+}

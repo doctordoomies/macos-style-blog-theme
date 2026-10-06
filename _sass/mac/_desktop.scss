@@ -1,0 +1,1472 @@
+// ── 데스크톱 ────────────────────────────────────────────────────
+// 배경화면 · 메뉴 막대 · 데스크톱 폴더 · Dock · Spotlight · 달력
+
+// ── 배경화면 ────────────────────────────────────────────────────
+// 그림은 desktop.html 이 --wallpaper(-2x) 로 넘긴다(_config.yml 에서 바꾼다).
+// 위쪽이 밝은 그림이라 메뉴 막대의 검은 글자가 그대로 읽힌다.
+.wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-color: #dbe6fb;
+  background-image: var(--wallpaper);
+  background-image: -webkit-image-set(var(--wallpaper) 1x, var(--wallpaper-2x) 2x);
+  background-image: image-set(var(--wallpaper) 1x, var(--wallpaper-2x) 2x);
+  background-position: center bottom;
+  background-size: cover;
+  pointer-events: none;
+}
+
+// 단색 배경화면(_config.yml 의 wallpaper_color). 색은 desktop.html 이 style 로 넘기므로
+// 다크 모양의 밤 그림보다도 앞선다.
+
+// ── 명령어 격자 ─────────────────────────────────────────────────
+// 배경화면을 덮는 크기 제각각의 칸들. 칸마다 리눅스 명령어 하나(wallgrid.js 가 채운다).
+// 메뉴 막대 아래에서 시작하고, 바탕을 해치지 않도록 선과 글자는 아주 옅게 쓴다.
+.wallgrid {
+  --wg-line: rgba(255, 255, 255, 0.07);
+  --wg-ink: rgba(255, 255, 255, 0.3);
+  --wg-dim: rgba(255, 255, 255, 0.16);
+  --wg-prompt: rgba(80, 250, 123, 0.38);
+  --wg-tag-bg: rgba(255, 255, 255, 0.06);
+  --wg-tag-ink: var(--wg-dim);
+  --wg-typing-bg: rgba(255, 255, 255, 0.05);
+  --wg-border: 1px;
+
+  position: absolute;
+  inset: var(--menubar-h) 0 0;
+  display: grid; // 열 · 줄 수와 칸의 자리는 wallgrid.js 가 화면 크기로 정한다
+  gap: 8px;
+  padding: 8px;
+  overflow: hidden;
+  font: 400 12px/1.5 var(--mono);
+  color: var(--wg-ink);
+}
+
+// 밝은 바탕(#d3d9b3 등) 위에서는 Grid Information 그대로: 검은 2px 선, 검은 글자, 꼬리표는 어두운 올리브 바탕에 크림 숫자
+body[data-wallpaper-tone="light"] .wallgrid {
+  --wg-line: #000000;
+  --wg-ink: #000000;
+  --wg-dim: #000000;
+  --wg-prompt: #000000;
+  --wg-tag-bg: #4a5236; // 어두운 올리브
+  --wg-tag-ink: #eef0d8; // 크림
+  --wg-typing-bg: #eef0d8; // 치고 있는 칸은 크림으로 밝힌다
+  --wg-border: 2px;
+}
+
+.wallgrid__cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: var(--wg-border) solid var(--wg-line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.wallgrid__i {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 2px 5px;
+  border-bottom-left-radius: 5px;
+  background: var(--wg-tag-bg);
+  color: var(--wg-tag-ink);
+  font-weight: 600;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.wallgrid__cmd {
+  padding-right: 34px; // 꼬리표 자리
+  font: inherit;
+  color: var(--wg-ink);
+  overflow-wrap: anywhere; // 좁은 칸에서는 잘리지 않고 다음 줄로
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+
+  b {
+    font-weight: 400;
+    color: var(--wg-prompt);
+  }
+}
+
+.wallgrid__note {
+  color: var(--wg-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// 작은 칸의 출력은 평소엔 숨겨 두고 재생할 때만 보인다
+.wallgrid__out--run {
+  display: none;
+}
+
+// 재생 중 지금 명령어를 치고 있는 칸. 터미널처럼 설명은 걷고, 출력은 다 친 뒤에 찍힌다
+.wallgrid__cell.is-typing {
+  background: var(--wg-typing-bg);
+
+  .wallgrid__note {
+    display: none;
+  }
+
+  .wallgrid__out {
+    display: block;
+    visibility: hidden;
+  }
+
+  &.is-ran .wallgrid__out {
+    visibility: visible;
+  }
+}
+
+.wallgrid__caret {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.1em;
+  margin-left: 1px;
+  vertical-align: -0.2em;
+  background: currentColor;
+  animation: wallgrid-caret 1s steps(1) infinite;
+}
+
+@keyframes wallgrid-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.wallgrid__out {
+  margin: 6px 0 0;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--wg-dim);
+  white-space: pre;
+  overflow: hidden;
+}
+
+.wallgrid__out b {
+  font-weight: 400;
+  color: var(--wg-prompt);
+}
+
+// ── 어두운 배경화면 ─────────────────────────────────────────────
+// 배경화면이 어두우면(_config.yml 의 wallpaper_tone: dark) 라이트 모양에서도
+// 배경화면 위에 바로 놓인 것 — 메뉴 막대의 글자와 단추, 데스크톱 폴더 이름,
+// 선택 상자 — 을 밝게 쓴다. 창과 메뉴 판 안은 모양을 그대로 따른다.
+body[data-wallpaper-tone="dark"] {
+  .menubar {
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.45);
+
+    &__item {
+      color: #ffffff;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.16);
+      }
+    }
+
+    .menu.is-open > .menubar__item,
+    .menubar__clock[aria-expanded="true"] {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .menu__panel,
+    .ncenter {
+      text-shadow: none;
+    }
+  }
+
+  .desktop-icon__label {
+    color: #ffffff;
+    text-shadow:
+      0 0 2px rgba(0, 0, 0, 0.75),
+      0 1px 6px rgba(0, 0, 0, 0.6);
+  }
+
+  .desktop-icon.is-selected .desktop-icon__label {
+    text-shadow: none;
+  }
+
+  .desktop-icon.is-selected .desktop-icon__img {
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  .marquee {
+    border-color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.14);
+  }
+}
+
+// 밝은 배경화면이면 다크 모양에서도 배경화면 위에 바로 놓인 글자(메뉴 막대 · 폴더 이름)는 검게 쓴다
+html[data-theme="dark"] body[data-wallpaper-tone="light"] {
+  .menubar,
+  .menubar__item {
+    color: #1d1d1f;
+    text-shadow: none;
+  }
+
+  .desktop-icon__label {
+    color: #1d1d1f;
+    text-shadow: none;
+  }
+}
+
+// ── 메뉴 막대 ───────────────────────────────────────────────────
+.menubar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--menubar-h);
+  padding: 0 var(--safe-r, 8px) 0 var(--safe-l, 8px);
+  // macOS 26 처럼 막대 자체는 투명하다. 배경화면 위에 글자와 단추만 뜬다.
+  // 뒤를 흐리지 않아야(backdrop-filter 없음) 그 안의 메뉴 판이 제대로 흐려진다.
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+  font-size: 16px;
+  font-weight: 500;
+
+  &__left,
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 24px;
+    padding: 0 9px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    white-space: nowrap;
+    color: var(--ink);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.45);
+    }
+
+    &:focus-visible {
+      outline-offset: -2px;
+    }
+  }
+
+  .menu.is-open > &__item,
+  &__clock[aria-expanded="true"] {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  &__icon .icon {
+    width: 16px;
+    height: 16px;
+    stroke-width: 1.6;
+  }
+
+  &__clock {
+    font-variant-numeric: tabular-nums;
+
+    &:hover {
+      background: none;
+    }
+  }
+}
+
+// ── 메뉴 ────────────────────────────────────────────────────────
+.menu {
+  position: relative;
+
+  &__panel {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    z-index: 70;
+    display: flex;
+    flex-direction: column;
+    min-width: 236px;
+    padding: 5px;
+    border-radius: 12px;
+    font-weight: 400;
+    animation: menu-in 0.16s var(--ease-out);
+  }
+
+  &--wide &__panel {
+    width: 360px;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    height: 28px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 7px;
+    background: none;
+    font-size: 16px;
+    text-align: left;
+    color: var(--ink);
+    white-space: nowrap;
+
+    .icon {
+      width: 16px;
+      height: 16px;
+      color: var(--ink-2);
+    }
+
+    &[aria-current] {
+      font-weight: 600;
+
+      .icon {
+        color: var(--ink);
+      }
+    }
+
+    // 고른 항목: 맥의 메뉴처럼 옅게 비치는 회색 판. 글자 색은 그대로.
+    &:hover,
+    &:focus-visible {
+      outline: none;
+      background: var(--pick);
+    }
+  }
+
+  &__text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__meta,
+  &__kbd {
+    margin-left: auto;
+    padding-left: 14px;
+    font-size: 15px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__sep {
+    height: 0;
+    margin: 4px 10px;
+    border-top: var(--hair) solid rgba(0, 0, 0, 0.14);
+  }
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// ── RunCat ──────────────────────────────────────────────────────
+.menubar__cat {
+  padding: 0 6px;
+}
+
+.runcat {
+  display: block;
+  width: 30px;
+  height: 18px;
+}
+
+.menu--right .menu__panel {
+  left: auto;
+  right: 0;
+}
+
+.menu__info {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 16px;
+  color: var(--ink-2);
+}
+
+.menu__item[role="menuitemcheckbox"][aria-checked="true"]::after {
+  content: "✓";
+  margin-left: auto;
+  padding-left: 14px;
+}
+
+// ── 사과 · Wi-Fi · 배터리 ───────────────────────────────────────
+// 애플 메뉴 자리의 사과, 그리고 맥처럼 오른쪽에 Wi-Fi 부채꼴과 배터리.
+// Wi-Fi 와 배터리 메뉴의 내용은 모형이다(status.js).
+.menubar__logo {
+  padding: 0 10px;
+}
+
+.menubar__apple {
+  display: block;
+  width: 15px;
+  height: 17px;
+  margin-top: -1px;
+  fill: currentColor;
+}
+
+.menubar__wifi .icon {
+  width: 17px;
+  height: 17px;
+}
+
+// 명령어 격자 재생 · 정지(wallgrid.js). 테두리만 있는 원 안의 ▶ 가 누르면 ■ 로 바뀐다
+.menubar__play .icon {
+  width: 17px;
+  height: 17px;
+}
+
+.menubar__play[aria-pressed="false"] .menubar__play-off,
+.menubar__play[aria-pressed="true"] .menubar__play-on {
+  display: none;
+}
+
+.menubar__battery {
+  gap: 5px;
+  padding: 0 7px;
+  font-variant-numeric: tabular-nums;
+}
+
+.battery {
+  position: relative;
+  display: block;
+  width: 25px;
+  height: 12px;
+  margin-right: 3px;
+  padding: 2px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  opacity: 0.92;
+
+  // 오른쪽 끝의 꼭지
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -4px;
+    width: 2px;
+    height: 4px;
+    margin-top: -2px;
+    border-radius: 0 1px 1px 0;
+    background: currentColor;
+    opacity: 0.55;
+  }
+
+  &__level {
+    display: block;
+    width: calc(var(--level, 1) * 100%);
+    height: 100%;
+    border-radius: 1.5px;
+    background: currentColor;
+  }
+}
+
+// 저전력 모드(= 움직임 멈추기): 맥처럼 배터리가 노래진다.
+html.is-still .battery__level {
+  background: #ffd60a;
+}
+
+.menu__panel--status {
+  width: 300px;
+}
+
+.menu__label {
+  margin: 6px 10px 3px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.menu__title {
+  font-weight: 600;
+}
+
+// 색 고르기(RunCat 의 Colors): 맥 메뉴의 태그 색처럼 동그라미 한 줄.
+// 고른 색은 바깥에 고리를 두르고, 'Menu Bar' 는 검정 · 흰색 반반.
+.menu__swatches {
+  display: flex;
+  gap: 7px;
+  padding: 3px 10px 7px;
+}
+
+.menu__swatch {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--swatch, #8e8e93);
+  box-shadow: inset 0 0 0 var(--hair) rgba(0, 0, 0, 0.22);
+
+  &--auto {
+    background: linear-gradient(135deg, #1d1d1f 50%, #ffffff 50%);
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      box-shadow:
+        inset 0 0 0 var(--hair) rgba(0, 0, 0, 0.22),
+        0 0 0 2px var(--menu-ring, rgba(0, 0, 0, 0.18));
+    }
+  }
+
+  // 고른 색: 틈을 두고 고리(판 색과 상관없이 보이게 outline 으로)
+  &[aria-checked="true"] {
+    outline: 1.5px solid var(--ink-2);
+    outline-offset: 2px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+html[data-theme="dark"] .menu__swatch {
+  --menu-ring: rgba(255, 255, 255, 0.28);
+}
+
+.menu__info--title {
+  color: var(--ink);
+
+  .menu__meta {
+    color: var(--ink-2);
+  }
+}
+
+.menu__info--small {
+  height: auto;
+  min-height: 22px;
+  padding: 2px 10px;
+  font-size: 14.5px;
+  color: var(--ink-3);
+  white-space: normal;
+}
+
+// 맥의 켬/끔 스위치
+.menu__switch .switch {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 17px;
+  margin-left: auto;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.16);
+  transition: background-color 0.18s linear;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s var(--ease-out);
+  }
+}
+
+.menu__switch[aria-checked="true"] .switch {
+  background: var(--accent);
+
+  &::after {
+    transform: translateX(13px);
+  }
+}
+
+.menu__item.menu__switch[role="menuitemcheckbox"][aria-checked="true"]::after,
+.menu__item.menu__net[role="menuitemradio"][aria-checked="true"]::after {
+  content: none;
+}
+
+// 네트워크 한 줄: 동그라미 안의 부채꼴(붙은 곳은 파랑), 이름, 자물쇠
+.menu__net {
+  height: 32px;
+}
+
+.menu__net-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--fill-2);
+
+  .menu__item & .icon {
+    width: 14px;
+    height: 14px;
+    color: var(--ink);
+  }
+
+  .is-joined & {
+    background: var(--accent);
+
+    .icon {
+      color: #ffffff;
+    }
+  }
+}
+
+.menu__item .menu__lock {
+  width: 11px;
+  height: 11px;
+  margin-left: 6px;
+  color: var(--ink-3);
+}
+
+// ── 창이 떠 있는 곳 ─────────────────────────────────────────────
+// 메뉴 막대 아래부터 화면 끝까지. 창의 위치는 이 상자를 기준으로 잡는다.
+.workspace {
+  position: fixed;
+  top: var(--menubar-h);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+}
+
+// ── 선택 상자 ───────────────────────────────────────────────────
+// 바탕을 끌 때 그려지는 맥의 선택 상자: 옅은 회색 면과 조금 짙은 테두리.
+.marquee {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1; // 폴더와 같은 층, 창보다는 아래
+  border: 1px solid rgba(70, 80, 100, 0.55);
+  border-radius: 2px;
+  background: rgba(90, 100, 125, 0.16);
+  pointer-events: none;
+  transition: opacity 0.16s linear;
+
+  &.is-leaving {
+    opacity: 0;
+  }
+}
+
+// ── 데스크톱 아이콘 ─────────────────────────────────────────────
+// 오른쪽 위부터 아래로 쌓이고, 넘치면 왼쪽으로 한 줄 더.
+// 고르면 아이콘 뒤에 회색 판이, 이름에 파란 알약이 깔린다(맥의 선택 색).
+.desktop-icons {
+  position: absolute;
+  top: 14px;
+  right: 12px;
+  z-index: 1;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(auto-fill, 100px);
+  gap: 2px 4px;
+  max-height: calc(100% - var(--dock-reserve) - 14px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  direction: rtl;
+
+  > li {
+    direction: ltr;
+  }
+}
+
+.desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  -webkit-user-drag: none;
+  width: 92px;
+  padding: 4px 2px;
+  border-radius: 8px;
+  cursor: var(--cursor);
+
+  &:focus-visible {
+    outline-offset: 0;
+  }
+
+  // 이름은 한 줄로(칸보다 길면 양옆으로 조금 넘친다).
+  &__label {
+    padding: 1px 6px;
+    border-radius: 5px;
+    white-space: nowrap;
+    font-size: 14.5px;
+    font-weight: 500;
+    line-height: 1.3;
+    text-align: center;
+    color: var(--ink);
+    // 그림 위에서도 읽히게 글자 둘레에 옅은 빛
+    text-shadow:
+      0 0 2px var(--label-glow),
+      0 0 8px var(--label-glow);
+  }
+
+  &.is-selected &__label {
+    text-shadow: none;
+    background: #0a64d8;
+    color: #ffffff;
+  }
+}
+
+// 아이콘 그림(메모 앱 아이콘). 고르면 뒤에 회색 판.
+.desktop-icon__img {
+  display: block;
+  width: 64px;
+  height: 64px;
+  padding: 2px;
+  border-radius: 10px;
+  -webkit-user-drag: none;
+
+  .desktop-icon.is-selected & {
+    background: rgba(0, 0, 0, 0.1);
+  }
+}
+
+// ── 날씨 위젯 ───────────────────────────────────────────────────
+// 맥의 날씨 위젯: 바탕 왼쪽 위의 둥근 판. 크기(작게·중간·크게)와 자리는
+// weather.js 가 매긴다(폭·높이·left·top 을 직접 적는다). 판의 색은
+// data-sky(맑음·구름·비…)와 data-time(낮·밤)을 따른다.
+// 크기를 바꾸면 판은 폭·높이가 스프링처럼 늘거나 줄고, 안의 내용(.weather__body)은
+// weather.js 가 옛것과 새것을 겹쳐 흐리게 바꾼다.
+.weather {
+  --sky-top: #2f7fd6;
+  --sky-bottom: #6aaee8;
+  --spring: cubic-bezier(0.32, 0.72, 0, 1);
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  z-index: 1; // 폴더와 같은 층, 창보다는 아래
+  width: 164px;
+  height: 164px;
+  overflow: hidden;
+  border-radius: 22px;
+  background: linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.18);
+  color: #ffffff;
+  line-height: 1.2;
+  user-select: none;
+  touch-action: none;
+  cursor: var(--cursor);
+  transition:
+    width 0.42s var(--spring),
+    height 0.42s var(--spring),
+    left 0.42s var(--spring),
+    top 0.42s var(--spring),
+    box-shadow 0.2s linear;
+
+  &[hidden] {
+    display: none;
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(10, 100, 216, 0.7);
+    outline-offset: 2px;
+  }
+
+  // 끄는 동안에는 손끝을 바로 따라오고, 조금 들린 듯 그림자가 짙다.
+  &.is-dragging {
+    transition:
+      width 0.42s var(--spring),
+      height 0.42s var(--spring),
+      box-shadow 0.2s linear;
+    box-shadow:
+      0 0 0 0.5px rgba(0, 0, 0, 0.12),
+      0 14px 36px rgba(0, 0, 0, 0.28);
+  }
+
+  &[data-time="night"] {
+    --sky-top: #0c1631;
+    --sky-bottom: #2b3c6b;
+  }
+
+  &[data-sky="partly"][data-time="day"] {
+    --sky-top: #3f7fbf;
+    --sky-bottom: #86add3;
+  }
+
+  &[data-sky="cloudy"],
+  &[data-sky="fog"] {
+    --sky-top: #5d758d;
+    --sky-bottom: #93a5b7;
+  }
+
+  &[data-sky="rain"],
+  &[data-sky="storm"] {
+    --sky-top: #3b4757;
+    --sky-bottom: #637183;
+  }
+
+  &[data-sky="snow"] {
+    --sky-top: #6b7f96;
+    --sky-bottom: #a7b5c5;
+  }
+
+  // 흐린 밤은 모양을 가리지 않고 짙은 먹색 하나로.
+  &[data-time="night"]:not([data-sky="clear"]):not([data-sky="partly"]) {
+    --sky-top: #1c232e;
+    --sky-bottom: #3a4452;
+  }
+
+  // 한 크기의 내용 한 벌. 바꾸는 동안에는 옛것(.is-leaving)과 새것이 겹친다.
+  &__body {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding: 14px 15px 13px;
+    transform-origin: 0 0;
+
+    &--small {
+      justify-content: space-between;
+    }
+  }
+
+  &__now,
+  &__sky {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__city {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  &__temp {
+    font-size: 42px;
+    font-weight: 300;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  &__sky {
+    gap: 1px;
+
+    .weather__icon {
+      width: 22px;
+      height: 22px;
+      margin-bottom: 3px;
+    }
+  }
+
+  &__name,
+  &__range {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  &__range {
+    font-weight: 500;
+  }
+
+  // 중간 · 크게: 위에 지금(왼쪽)과 오늘(오른쪽), 아래에 시간별.
+  &__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    .weather__sky {
+      align-items: flex-end;
+      padding-top: 2px;
+      text-align: right;
+    }
+  }
+
+  &__hours {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    margin: auto 0 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .weather__icon {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  &__hour {
+    font-size: 11px;
+    opacity: 0.85;
+    white-space: nowrap;
+  }
+
+  &__body--large &__hours {
+    margin: 12px 0 0;
+    padding: 10px 0;
+    border-top: 0.5px solid rgba(255, 255, 255, 0.3);
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.3);
+  }
+
+  // 크게: 닷새. 이름 · 그림 · 최저 · 막대 · 최고
+  &__days {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: grid;
+      grid-template-columns: 52px 22px 36px 1fr 36px;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 600;
+
+      > :last-child {
+        text-align: right;
+      }
+    }
+
+    .weather__icon {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  &__lo {
+    text-align: right;
+    opacity: 0.7;
+  }
+
+  &__bar {
+    position: relative;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.22);
+
+    i {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #8ee0a1, #ffd60a, #ff9f0a);
+    }
+  }
+}
+
+// ── Dock ────────────────────────────────────────────────────────
+// 맥의 Dock: 화면 아래 둥근 모서리의 서리 판(흐림만 있고 굴절은 없다)에
+// 앱 아이콘이 줄지어 선다. 마우스를 대면 위에 이름표, 떠 있는 앱 밑에는
+// 작은 점. 구분선 오른쪽에 최소화한 창과 휴지통.
+.dock {
+  --icon: 62px;
+  --dock-bg: rgba(246, 246, 248, 0.34);
+  --dock-edge: rgba(255, 255, 255, 0.42);
+  --dock-sep: rgba(0, 0, 0, 0.2);
+  --dock-dot: rgba(0, 0, 0, 0.62);
+  --tip-bg: rgba(238, 238, 240, 0.94);
+  --tip-ink: #1d1d1f;
+  position: fixed;
+  left: 50%;
+  bottom: 6px;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  max-width: calc(100vw - 16px);
+  transform: translateX(-50%);
+
+  &__bar {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    padding: 2px 4px 6px;
+    border-radius: 22px;
+  }
+
+  // 판: 흐린 반투명 바탕. 확대될 때 아이콘 자리는 그대로 두고 판만 양옆으로
+  // 늘인다(macos.js 가 left · right 를 준다).
+  &__plate {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--dock-bg);
+    -webkit-backdrop-filter: blur(28px) saturate(1.8);
+    backdrop-filter: blur(28px) saturate(1.8);
+    box-shadow:
+      inset 0 0 0 var(--hair) var(--dock-edge),
+      0 0 0 var(--hair) rgba(0, 0, 0, 0.22),
+      0 10px 34px -10px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    transition:
+      left 0.24s cubic-bezier(0.3, 0.7, 0.2, 1),
+      right 0.24s cubic-bezier(0.3, 0.7, 0.2, 1);
+
+    // 마우스를 좇는 동안에는 프레임마다 값을 바로 넣는다(전환 없음). 들어올 때만 짧게.
+    .is-magnifying & {
+      transition: none;
+    }
+
+    .is-magnifying.is-entering & {
+      transition-property: left, right;
+      transition-duration: 0.12s;
+    }
+  }
+
+  &__apps,
+  &__windows {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__windows:empty {
+    display: none;
+  }
+
+  &__app {
+    position: relative;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    -webkit-user-drag: none;
+    // 확대: 커진 이웃에게 밀려난다(macos.js 가 translate 를 준다). 점과 이름표도 함께 간다.
+    will-change: transform;
+    transition: translate 0.24s cubic-bezier(0.3, 0.7, 0.2, 1);
+
+    .is-magnifying & {
+      transition: none;
+    }
+
+    .is-magnifying.is-entering & {
+      transition: translate 0.12s cubic-bezier(0.3, 0.7, 0.2, 1);
+    }
+
+    &:focus-visible {
+      outline: none;
+
+      .dock__icon {
+        border-radius: 14px;
+        outline: 2px solid var(--accent);
+        outline-offset: -2px;
+      }
+    }
+
+    // 누르는 동안 맥처럼 아이콘이 어두워진다.
+    &:active .dock__icon {
+      filter: brightness(0.72);
+    }
+
+    // 떠 있는 앱: 아이콘 밑의 점
+    &.is-running::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -4.5px;
+      width: 4px;
+      height: 4px;
+      margin-left: -2px;
+      border-radius: 50%;
+      background: var(--dock-dot);
+    }
+
+    &:focus-visible .dock__tip {
+      opacity: 1;
+    }
+
+    // 손가락으로 누른 뒤에 이름표가 남지 않게, 마우스가 있을 때만.
+    @media (hover: hover) {
+      &:hover .dock__tip {
+        opacity: 1;
+      }
+    }
+  }
+
+  // 앱 아이콘: 맥의 아이콘 그림(둥근 사각형과 둘레의 여백이 그림에 들어 있다)
+  &__icon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: var(--icon);
+    height: var(--icon);
+    // 확대: 마우스를 대면 가까운 아이콘들이 물결처럼 커진다(macos.js 가 scale 을 준다).
+    // 크기(width)를 바꾸면 움직일 때마다 레이아웃과 그림을 새로 하므로, 자리는 그대로
+    // 두고 scale 로 키워 합성기(GPU)가 맡게 한다. 아래 가운데를 축으로 위로 솟아
+    // Dock 판의 높이는 그대로다. 튀기(dock-bounce)는 transform 이라 겹쳐 쓴다.
+    transform-origin: 50% 100%;
+    // 제 층(layer)에 올려 두면 커질 때 그림을 다시 그리지 않고 합성만 한다.
+    will-change: transform;
+    -webkit-user-drag: none;
+    transition: scale 0.24s cubic-bezier(0.3, 0.7, 0.2, 1);
+
+    .is-magnifying & {
+      transition: none;
+    }
+
+    .is-magnifying.is-entering & {
+      transition: scale 0.12s cubic-bezier(0.3, 0.7, 0.2, 1);
+    }
+
+    > svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+
+    &.is-bouncing {
+      animation: dock-bounce 0.72s cubic-bezier(0.3, 0, 0.3, 1);
+    }
+  }
+
+  // 최소화한 창: 흰 종이 한 장
+  &__icon--window .icon {
+    box-sizing: content-box;
+    width: 40%;
+    height: 40%;
+    padding: 22% 20%;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    color: rgba(0, 0, 0, 0.55);
+    stroke-width: 1.3;
+  }
+
+  &__sep {
+    flex: none;
+    align-self: stretch;
+    width: 0;
+    margin: 2px 4px -3px;
+    border-left: 1px solid var(--dock-sep);
+    // 확대된 앱 아이콘에 밀려난다(macos.js).
+    transition: translate 0.24s cubic-bezier(0.3, 0.7, 0.2, 1);
+
+    .is-magnifying & {
+      transition: none;
+    }
+
+    .is-magnifying.is-entering & {
+      transition-duration: 0.12s;
+    }
+  }
+
+  // 아이콘 위에 뜨는 이름표
+  &__tip {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    max-width: 260px;
+    z-index: 2;
+    padding: 4px 11px;
+    overflow: hidden;
+    border-radius: 7px;
+    background: var(--tip-bg);
+    box-shadow:
+      0 0 0 var(--hair) rgba(0, 0, 0, 0.2),
+      0 4px 14px -4px rgba(0, 0, 0, 0.3);
+    color: var(--tip-ink);
+    font-size: 15.5px;
+    font-weight: 500;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    text-shadow: none;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    // 커진 아이콘 위로 올라선다(macos.js 가 translate 를 준다).
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.1s linear,
+      translate 0.24s cubic-bezier(0.3, 0.7, 0.2, 1);
+
+    .is-magnifying & {
+      transition: opacity 0.1s linear;
+    }
+
+    .is-magnifying.is-entering & {
+      transition:
+        opacity 0.1s linear,
+        translate 0.12s cubic-bezier(0.3, 0.7, 0.2, 1);
+    }
+  }
+}
+
+@keyframes dock-bounce {
+  0%,
+  100% {
+    transform: none;
+  }
+
+  28% {
+    transform: translateY(-38%);
+  }
+
+  56% {
+    transform: none;
+  }
+
+  74% {
+    transform: translateY(-14%);
+  }
+}
+
+// 흐림을 못 쓰는 브라우저: 판을 짙게 칠한다.
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .dock {
+    --dock-bg: rgba(236, 236, 238, 0.94);
+  }
+}
+
+// ── Spotlight ───────────────────────────────────────────────────
+.spotlight {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 16vh 16px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+
+  &[open] {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.06);
+  }
+
+  &__panel {
+    width: 660px;
+    max-width: 100%;
+    padding: 6px;
+    border-radius: 26px;
+    animation: spot-in 0.34s var(--spring-fallback) both;
+    animation-timing-function: var(--spring);
+  }
+
+  &__field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 56px;
+    padding: 0 16px;
+  }
+
+  &__icon {
+    width: 22px;
+    height: 22px;
+    color: var(--ink-2);
+    stroke-width: 1.5;
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-size: 26.5px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+
+    &::placeholder {
+      color: var(--ink-3);
+    }
+  }
+
+  &__results {
+    max-height: 48vh;
+    margin: 0;
+    padding: 4px 0 6px;
+    overflow-y: auto;
+    list-style: none;
+    border-top: var(--hair) solid rgba(0, 0, 0, 0.1);
+  }
+
+  &__group {
+    padding: 8px 14px 4px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-3);
+  }
+
+  &__hit {
+    cursor: var(--cursor);
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    margin: 0 4px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: 17.5px;
+    color: var(--ink);
+
+    .icon {
+      width: 17px;
+      height: 17px;
+      color: var(--ink-2);
+    }
+  }
+
+  &__hit[aria-selected="true"] &__row {
+    background: var(--pick);
+  }
+
+  &__title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    mark {
+      background: none;
+      color: inherit;
+      font-weight: 700;
+    }
+  }
+
+  &__meta {
+    font-size: 15px;
+    color: var(--ink-3);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__none {
+    padding: 18px 14px 14px;
+    font-size: 17px;
+    color: var(--ink-3);
+  }
+
+  &__foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+    margin: 0;
+    padding: 8px 14px 6px;
+    border-top: var(--hair) solid rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+    color: var(--ink-3);
+
+    kbd {
+      display: inline-block;
+      min-width: 18px;
+      margin-right: 3px;
+      padding: 0 4px;
+      border-radius: 4px;
+      box-shadow: inset 0 0 0 var(--hair) rgba(0, 0, 0, 0.25);
+      font-size: 13px;
+      line-height: 20.5px;
+      text-align: center;
+    }
+  }
+}
+
+@keyframes spot-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// ── 좁은 화면 ───────────────────────────────────────────────────
+// 폰에서는 데스크톱 아이콘을 걷고, 창이 화면을 채운다. 메뉴 막대는 상태
+// 막대처럼 줄고, Dock 은 아이콘을 줄여 화면 폭에 맞춘다.
+@media (max-width: 899px) {
+  .menubar {
+    padding: 0 var(--safe-r, 6px) 0 var(--safe-l, 6px);
+
+    // 폰: '최근 글'은 접고, 카테고리 메뉴는 남긴다(Dock 에 카테고리가 없다).
+    &__left .menu--wide,
+    &__date {
+      display: none;
+    }
+  }
+
+  .desktop-icons,
+  .weather {
+    display: none;
+  }
+
+  // Dock: 아이콘을 화면 폭에 맞게 줄이고, 최소화한 창 자리는 뺀다(폰에는 최소화가 없다).
+  .dock {
+    // 칸 수(--dock-tiles)는 macos.js 가 센다(앱이 뜨고 닫히며 칸이 늘고 준다). 구분선 몫 0.3 칸.
+    --icon: clamp(28px, calc((100vw - 44px) / var(--dock-tiles, 10.3)), 56px);
+    bottom: calc(6px + env(safe-area-inset-bottom));
+
+    &__windows {
+      display: none;
+    }
+  }
+
+  .spotlight {
+    padding-top: calc(var(--menubar-h) + 12px);
+
+    &__foot {
+      display: none;
+    }
+
+    &__input {
+      font-size: 23px;
+    }
+  }
+}

@@ -1,0 +1,261 @@
+{%- comment -%}
+  메뉴 막대. 왼쪽 끝의 사과가 애플 메뉴 자리에 선다.
+  메뉴는 desktop.js 가 여닫는다.
+{%- endcomment -%}
+{%- assign cur_slug = page.categories | first %}
+<header class="menubar" data-menubar>
+  <nav class="menubar__left" aria-label="Menu Bar">
+    <div class="menu" data-menu>
+      <button class="menubar__item menubar__logo" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-app" aria-label="Apple menu">
+        <svg class="menubar__apple" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-apple"/></svg>
+      </button>
+      <div class="menu__panel glass" id="menu-app" role="menu" aria-label="Apple menu" hidden>
+        <a class="menu__item" role="menuitem" href="{{ '/about/' | relative_url }}">{% include icon.html name="mac" %}<span>About This Mac</span></a>
+        <div class="menu__sep" role="separator"></div>
+        {%- comment -%} 시스템 설정 창(settings.js). 화면 모드 · 배경화면 · Dock 은 거기서 고른다. {%- endcomment %}
+        <button class="menu__item" role="menuitem" type="button" data-open-settings>{% include icon.html name="gear" %}<span>System Settings…</span></button>
+        <div class="menu__sep" role="separator"></div>
+        {%- comment -%} 잠자기 · 재시동 · 시스템 종료는 흉내만 낸다(power.js). 깨우면 잠금 화면으로. {%- endcomment %}
+        <button class="menu__item" role="menuitem" type="button" data-power="sleep">{% include icon.html name="sleep" %}<span>Sleep</span></button>
+        <button class="menu__item" role="menuitem" type="button" data-power="restart">{% include icon.html name="restart" %}<span>Restart…</span></button>
+        <button class="menu__item" role="menuitem" type="button" data-power="shutdown">{% include icon.html name="power" %}<span>Shut Down…</span></button>
+      </div>
+    </div>
+
+    {%- comment -%}
+      앞에 선 앱의 이름(굵게)과 그 앱의 메뉴. 앞의 창이 바뀌면 macos.js 가 이름을 바꾸고,
+      data-app-menu 에 그 앱이 든 메뉴만 보인다('*' 는 늘). 브라우저가 ⌘W, ⌘Q, ⌘M, ⌘Tab 을
+      먼저 가져가므로 단축키는 ⌥ 로 쓴다.
+    {%- endcomment %}
+    <div class="menu" data-menu data-app-menu="*">
+      <button class="menubar__item menubar__appname" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-appname"><span data-app-name>Finder</span></button>
+      <div class="menu__panel glass" id="menu-appname" role="menu" aria-label="Application" hidden>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="app-about"><span data-app-label="about">About Finder</span></button>
+        <div class="menu__sep" role="separator"></div>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="app-hide"><span data-app-label="hide">Hide Finder</span><span class="menu__meta">⌥H</span></button>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="app-quit"><span data-app-label="quit">Quit Finder</span><span class="menu__meta">⌥Q</span></button>
+      </div>
+    </div>
+
+    <div class="menu" data-menu data-app-menu="*">
+      <button class="menubar__item" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-file">File</button>
+      <div class="menu__panel glass" id="menu-file" role="menu" aria-label="File" hidden>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="new-tab" data-only="preview druid"><span>Open in New Tab</span></button>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="spotlight"><span>Find</span><span class="menu__meta">⌘K</span></button>
+        <div class="menu__sep" role="separator"></div>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="close"><span>Close Window</span><span class="menu__meta">⌥W</span></button>
+      </div>
+    </div>
+
+    <div class="menu" data-menu data-app-menu="terminal">
+      <button class="menubar__item" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-shell">Shell</button>
+      <div class="menu__panel glass" id="menu-shell" role="menu" aria-label="Shell" hidden>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="term-clear"><span>Clear Screen</span><span class="menu__meta">⌃L</span></button>
+      </div>
+    </div>
+
+    <div class="menu" data-menu data-app-menu="music">
+      <button class="menubar__item" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-control">Controls</button>
+      <div class="menu__panel glass" id="menu-control" role="menu" aria-label="Controls" hidden>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="music-play"><span>Play/Pause</span></button>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="music-next"><span>Next Track</span></button>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="music-prev"><span>Previous Track</span></button>
+      </div>
+    </div>
+
+    <div class="menu" data-menu data-app-menu="finder preview system">
+      <button class="menubar__item" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-cats">Categories</button>
+      <div class="menu__panel glass" id="menu-cats" role="menu" aria-label="Categories" hidden>
+        <a class="menu__item" role="menuitem" href="{{ '/' | relative_url }}?at=obsidian" data-category="">
+          {% include icon.html name="all" %}<span>All Posts</span><span class="menu__meta">{{ site.posts | size }}</span>
+        </a>
+        <div class="menu__sep" role="separator"></div>
+        {%- for cat in site.data.categories %}
+        <a class="menu__item" role="menuitem" href="{{ '/' | relative_url }}?c={{ cat.slug }}" data-category="{{ cat.slug }}"{% if cat.slug == cur_slug %} aria-current="true"{% endif %}>
+          {% include icon.html name=cat.icon %}<span>{{ cat.name }}</span><span class="menu__meta">{{ site.categories[cat.slug] | size }}</span>
+        </a>
+        {%- endfor %}
+      </div>
+    </div>
+
+    <div class="menu menu--wide" data-menu data-app-menu="finder preview system">
+      <button class="menubar__item" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-recent">Recent</button>
+      <div class="menu__panel glass" id="menu-recent" role="menu" aria-label="Recent" hidden>
+        {%- for post in site.posts limit: 6 %}
+        <a class="menu__item" role="menuitem" href="{{ post.url | relative_url }}"{% if post.url == page.url %} aria-current="true"{% endif %}>
+          {% include icon.html name="doc" %}<span class="menu__text">{{ post.title }}</span><span class="menu__meta">{{ post.date | date: "%b %-d" }}</span>
+        </a>
+        {%- endfor %}
+      </div>
+    </div>
+
+    <div class="menu" data-menu data-app-menu="*">
+      <button class="menubar__item" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-window">Window</button>
+      <div class="menu__panel glass" id="menu-window" role="menu" aria-label="Window" hidden>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="minimize"><span>Minimize</span><span class="menu__meta">⌥M</span></button>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="zoom"><span>Zoom</span></button>
+        <div class="menu__sep" role="separator"></div>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="mission"><span>Mission Control</span><span class="menu__meta">⌥↑</span></button>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="switcher"><span>Next App</span><span class="menu__meta">⌥⇥</span></button>
+        <div class="menu__sep" role="separator" data-window-list-sep hidden></div>
+        <div data-window-list></div>
+      </div>
+    </div>
+
+    <div class="menu" data-menu data-app-menu="*">
+      <button class="menubar__item" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-help">Help</button>
+      <div class="menu__panel glass" id="menu-help" role="menu" aria-label="Help" hidden>
+        <button class="menu__item" role="menuitem" type="button" data-cmd="shortcuts"><span>Keyboard Shortcuts</span></button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="menubar__right">
+    {%- if site.wallpaper_grid %}
+    {%- comment -%} 배경화면의 명령어 격자에서 칸을 골라 명령어를 쳐 보이는 재생 · 정지 단추(wallgrid.js) {%- endcomment %}
+    <button class="menubar__item menubar__icon menubar__play" type="button" aria-pressed="false" aria-label="Play Wallpaper Commands" data-wallgrid-play>
+      <svg class="icon menubar__play-on" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8.3 6.6v6.8l5.4-3.4z" fill="currentColor" stroke="none"/></svg>
+      <svg class="icon menubar__play-off" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.2" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="7.2" y="7.2" width="5.6" height="5.6" rx="0.9" fill="currentColor" stroke="none"/></svg>
+    </button>
+    {%- endif %}
+    {%- comment -%} RunCat. 이 쪽이 바쁠수록 고양이가 빨리 달린다(runcat.js). {%- endcomment %}
+    <div class="menu menu--right" data-menu>
+      <button class="menubar__item menubar__cat" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-runcat" aria-label="RunCat">
+        <canvas class="runcat" width="30" height="18" data-runcat data-runcat-src="{{ '/assets/images/runcat/' | relative_url }}" aria-hidden="true"></canvas>
+      </button>
+      <div class="menu__panel glass" id="menu-runcat" role="menu" aria-label="RunCat" hidden>
+        <div class="menu__info" role="menuitem" aria-disabled="true" tabindex="-1">
+          <span>Activity</span><span class="menu__meta" data-runcat-load>—</span>
+        </div>
+        <div class="menu__sep" role="separator"></div>
+        <button class="menu__item" role="menuitemcheckbox" aria-checked="false" type="button" data-runcat-toggle>Let the Cat Rest</button>
+        <div class="menu__sep" role="separator"></div>
+        {%- comment -%}
+          고양이 색. 맥 메뉴의 태그 색 고르기처럼 동그라미 한 줄(runcat.js).
+          'Menu Bar' 는 원조 RunCat 처럼 메뉴 막대 글자색(배경에 따라 검정 · 흰색)을 따른다.
+        {%- endcomment %}
+        <p class="menu__label" id="runcat-colors">Colors</p>
+        <div class="menu__swatches" role="group" aria-labelledby="runcat-colors">
+          <button class="menu__swatch menu__swatch--auto" role="menuitemradio" aria-checked="false" type="button" data-runcat-color="menubar" data-keep-open aria-label="Menu Bar" title="Menu Bar"></button>
+          <button class="menu__swatch" role="menuitemradio" aria-checked="true" type="button" data-runcat-color="#ffffff" data-keep-open aria-label="White" title="White" style="--swatch: #ffffff"></button>
+          <button class="menu__swatch" role="menuitemradio" aria-checked="false" type="button" data-runcat-color="#ff9500" data-keep-open aria-label="Orange" title="Orange" style="--swatch: #ff9500"></button>
+          <button class="menu__swatch" role="menuitemradio" aria-checked="false" type="button" data-runcat-color="#ff3b30" data-keep-open aria-label="Red" title="Red" style="--swatch: #ff3b30"></button>
+          <button class="menu__swatch" role="menuitemradio" aria-checked="false" type="button" data-runcat-color="#ffcc00" data-keep-open aria-label="Yellow" title="Yellow" style="--swatch: #ffcc00"></button>
+          <button class="menu__swatch" role="menuitemradio" aria-checked="false" type="button" data-runcat-color="#28cd41" data-keep-open aria-label="Green" title="Green" style="--swatch: #28cd41"></button>
+          <button class="menu__swatch" role="menuitemradio" aria-checked="false" type="button" data-runcat-color="#007aff" data-keep-open aria-label="Blue" title="Blue" style="--swatch: #007aff"></button>
+          <button class="menu__swatch" role="menuitemradio" aria-checked="false" type="button" data-runcat-color="#af52de" data-keep-open aria-label="Purple" title="Purple" style="--swatch: #af52de"></button>
+          <button class="menu__swatch" role="menuitemradio" aria-checked="false" type="button" data-runcat-color="#ff2d55" data-keep-open aria-label="Pink" title="Pink" style="--swatch: #ff2d55"></button>
+          <button class="menu__swatch" role="menuitemradio" aria-checked="false" type="button" data-runcat-color="#8e8e93" data-keep-open aria-label="Graphite" title="Graphite" style="--swatch: #8e8e93"></button>
+        </div>
+      </div>
+    </div>
+    {%- comment -%}
+      Wi-Fi 와 배터리. 이 블로그가 실제 기기의 상태를 읽지는 않는다 — 맥의 메뉴를
+      흉내 낸 모형이다(status.js). 저전력 모드만은 진짜로 움직임을 멈춘다.
+      이어진 네트워크 이름은 _config.yml 의 desktop.wifi(없을 때의 이름은 site.js 와 같게).
+    {%- endcomment %}
+    {%- assign wifi = site.desktop.wifi | default: 'Home-5G' %}
+    <div class="menu menu--right" data-menu>
+      <button class="menubar__item menubar__icon menubar__wifi" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-wifi" aria-label="Wi-Fi: {{ wifi | escape }}, connected" data-wifi-button>
+        <svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-wifi" data-wifi-glyph/></svg>
+      </button>
+      <div class="menu__panel menu__panel--status glass" id="menu-wifi" role="menu" aria-label="Wi-Fi" hidden>
+        <button class="menu__item menu__switch" role="menuitemcheckbox" aria-checked="true" type="button" data-wifi-toggle data-keep-open>
+          <span class="menu__title">Wi-Fi</span><span class="switch" aria-hidden="true"></span>
+        </button>
+        <div class="menu__sep" role="separator" data-wifi-on></div>
+        <p class="menu__label" data-wifi-on>Known Networks</p>
+        <div data-wifi-on data-wifi-list></div>
+        <p class="menu__label" data-wifi-on>Other Networks</p>
+        <div data-wifi-on data-wifi-others></div>
+      </div>
+    </div>
+    <div class="menu menu--right" data-menu>
+      <button class="menubar__item menubar__battery" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-battery" aria-label="Battery 92%" data-battery-button>
+        <span class="menubar__percent" data-battery-percent>92%</span>
+        <span class="battery" aria-hidden="true"><span class="battery__level" style="--level: 0.92" data-battery-level></span></span>
+      </button>
+      <div class="menu__panel menu__panel--status glass" id="menu-battery" role="menu" aria-label="Battery" hidden>
+        <div class="menu__info menu__info--title" role="menuitem" aria-disabled="true" tabindex="-1">
+          <span class="menu__title">Battery</span><span class="menu__meta" data-battery-percent>92%</span>
+        </div>
+        <div class="menu__info menu__info--small" role="menuitem" aria-disabled="true" tabindex="-1">Power Source: Battery</div>
+        <div class="menu__info menu__info--small" role="menuitem" aria-disabled="true" tabindex="-1" data-battery-left>Time Remaining: 9:41</div>
+        <div class="menu__sep" role="separator"></div>
+        <button class="menu__item" role="menuitemcheckbox" aria-checked="false" type="button" data-still-toggle>Low Power Mode</button>
+        <div class="menu__sep" role="separator"></div>
+        <p class="menu__label">Using Significant Energy</p>
+        <div class="menu__info" role="menuitem" aria-disabled="true" tabindex="-1">
+          <span>RunCat</span><span class="menu__meta">The cat in the menu bar</span>
+        </div>
+      </div>
+    </div>
+    {%- comment -%} 제어 센터: Wi-Fi, 방해 금지, 다크 모드, 저전력 모드, 밝기, 소리, 지금 재생 중(controlcenter.js) {%- endcomment %}
+    <div class="menu menu--right" data-menu>
+      <button class="menubar__item menubar__icon" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-cc" aria-label="Control Center" data-cc-button>
+        <svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="2.6" y="4" width="14.8" height="5" rx="2.5"/><circle cx="14.9" cy="6.5" r="1.3" fill="currentColor" stroke="none"/><rect x="2.6" y="11" width="14.8" height="5" rx="2.5"/><circle cx="5.1" cy="13.5" r="1.3" fill="currentColor" stroke="none"/></svg>
+      </button>
+      <div class="menu__panel cc glass" id="menu-cc" role="menu" aria-label="Control Center" hidden>
+        <div class="cc__grid">
+          <div class="cc__tile cc__tile--stack">
+            <button class="cc__toggle" role="menuitemcheckbox" aria-checked="true" type="button" data-cc="wifi" data-keep-open>
+              <span class="cc__dot"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-wifi"/></svg></span><span class="cc__name">Wi-Fi<small data-cc-wifi-name>{{ wifi | escape }}</small></span>
+            </button>
+            <button class="cc__toggle" role="menuitemcheckbox" aria-checked="false" type="button" data-cc="dnd" data-keep-open>
+              <span class="cc__dot"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-moon"/></svg></span><span class="cc__name">Do Not Disturb<small>Notifications silenced</small></span>
+            </button>
+          </div>
+          <div class="cc__tile cc__tile--stack">
+            <button class="cc__toggle" role="menuitemcheckbox" aria-checked="false" type="button" data-cc="dark" data-keep-open>
+              <span class="cc__dot"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-theme-auto"/></svg></span><span class="cc__name">Dark Mode</span>
+            </button>
+            <button class="cc__toggle" role="menuitemcheckbox" aria-checked="false" type="button" data-cc="still" data-keep-open>
+              <span class="cc__dot"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-power"/></svg></span><span class="cc__name">Low Power Mode</span>
+            </button>
+          </div>
+        </div>
+        <label class="cc__tile cc__slider">
+          <span class="cc__label">Display</span>
+          <span class="cc__range"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><use href="#i-sun"/></svg><input type="range" min="40" max="100" step="1" value="100" aria-label="Brightness" data-cc-bright></span>
+        </label>
+        <label class="cc__tile cc__slider">
+          <span class="cc__label">Sound</span>
+          <span class="cc__range"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3.4 8h2.6l4-3.4v10.8L6 12H3.4z"/><path d="M13 7.6a3.4 3.4 0 0 1 0 4.8"/></svg><input type="range" min="0" max="100" step="1" value="80" aria-label="Volume" data-cc-volume></span>
+        </label>
+        <div class="cc__tile cc__now">
+          <img class="cc__art" src="{{ '/assets/images/dock/spotify-128.png' | relative_url }}" alt="" width="40" height="40" draggable="false" data-cc-art>
+          <span class="cc__track"><b data-cc-title>Not Playing</b><small data-cc-artist>Spotify</small></span>
+          <span class="cc__ctrls">
+            <button type="button" role="menuitem" data-cc="prev" data-keep-open aria-label="Previous Track"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="5.5" width="2.4" height="13" rx="1"/><path d="M19.5 6.4v11.2a.8.8 0 0 1-1.2.7L9.4 12.7a.8.8 0 0 1 0-1.4l8.9-5.6a.8.8 0 0 1 1.2.7z"/></svg></button>
+            <button type="button" role="menuitem" data-cc="play" data-keep-open aria-label="Play/Pause"><svg viewBox="0 0 24 24" aria-hidden="true" data-cc-play><path d="M8 5.2v13.6a.8.8 0 0 0 1.2.7l11-6.8a.8.8 0 0 0 0-1.4l-11-6.8A.8.8 0 0 0 8 5.2z"/></svg></button>
+            <button type="button" role="menuitem" data-cc="next" data-keep-open aria-label="Next Track"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="17.1" y="5.5" width="2.4" height="13" rx="1"/><path d="M4.5 6.4v11.2a.8.8 0 0 0 1.2.7l8.9-5.6a.8.8 0 0 0 0-1.4L5.7 5.7a.8.8 0 0 0-1.2.7z"/></svg></button>
+          </span>
+        </div>
+      </div>
+    </div>
+    <button class="menubar__item menubar__icon" type="button" data-open-spotlight aria-label="Spotlight Search (⌘K)">
+      {% include icon.html name="search" %}
+    </button>
+    {%- comment -%}
+      날짜를 누르면 맥의 알림 센터가 오른쪽에서 밀려 들어온다(ncenter.js).
+      옅은 유리 판 위에 지나간 알림(macos.js)과 캘린더 · 코인 위젯.
+      캘린더 위젯을 누르면 캘린더 앱(calendar.js)이 뜬다.
+    {%- endcomment %}
+    <div class="ncenter-root" data-nc-root>
+      <button class="menubar__item menubar__clock" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="notification-center" data-nc-button>
+        <time data-clock></time>
+      </button>
+      <div class="ncenter" id="notification-center" role="dialog" aria-label="Notification Center" hidden>
+        <section class="nc" aria-label="Notifications" data-nc>
+          <div class="nc__head"><h2 class="nc__title">Notifications</h2><button class="nc__clear" type="button" data-nc-clear hidden>Clear All</button></div>
+          <ol class="nc__list" data-nc-list></ol>
+          <p class="nc__empty" data-nc-empty>No new notifications</p>
+        </section>
+        <div class="ncenter__widgets">
+          <button class="nwidget nwidget--calendar" type="button" data-nc-calendar></button>
+          <div class="nwidget nwidget--coins" role="group" aria-label="Crypto prices" data-nc-coins></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>

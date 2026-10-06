@@ -1,0 +1,12 @@
+{
+  "name": "ephemeris-demo",
+  "private": true,
+  "description": "Records the README demo GIF (docs/demo.gif) from a running dev server",
+  "type": "module",
+  "scripts": {
+    "record": "node record.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.63.0"
+  }
+}

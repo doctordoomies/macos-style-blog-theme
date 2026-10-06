@@ -1,0 +1,110 @@
+---
+layout: desktop
+---
+{%- comment -%}
+  글 한 편은 데스크톱 위에 뜬 문서 창이다. 제목 막대는 본문 위에 떠 있어서,
+  본문이 그 밑으로 스크롤되며 가운데의 유리 이름표에 비쳐 휜다. 목차는 창
+  왼쪽에 위아래로 뜬 유리 판이고, 신호등이 그 위에 앉는다(macOS 26).
+  빨간 단추(닫기)는 글 목록으로 돌아간다.
+{%- endcomment -%}
+{%- assign slug = page.categories | first %}
+{%- comment -%} Jekyll 3(GitHub Pages)의 where 는 값이 nil 이면 배열 전체를 돌려준다. slug 가 있을 때만 찾는다. {%- endcomment -%}
+{%- assign cat = nil %}{%- if slug %}{%- assign cat = site.data.categories | where: "slug", slug | first %}{%- endif %}
+<article class="window doc" id="main-window" tabindex="-1" data-window="doc" data-close-href="{{ '/' | relative_url }}" aria-labelledby="doc-title">
+  <header class="doc__titlebar" data-window-drag>
+    {% include traffic-lights.html %}
+    <a class="doc__back" href="{{ '/' | relative_url }}" data-back aria-label="Back to All Posts">{% include icon.html name="chevron-left" %}</a>
+
+    <div class="doc__proxy glass">
+      {% include icon.html name="doc" class="doc__icon" %}
+      <span class="doc__name" lang="ko">{{ page.title }}</span>
+      {%- if cat %}<span class="doc__kind">— {{ cat.name }}</span>{% endif %}
+    </div>
+
+    <button class="doc__tool" type="button" aria-label="Contents" aria-pressed="true" aria-controls="toc" data-toc-toggle data-no-drag hidden>
+      {% include icon.html name="sidebar" %}
+    </button>
+    {%- comment -%} 오른쪽 끝의 공유: 폰에서는 공유 시트, 그 밖에서는 링크 복사 {%- endcomment %}
+    <button class="doc__share glass glass-button" type="button" data-share data-no-drag aria-label="Share">
+      {% include icon.html name="share" %}
+    </button>
+  </header>
+
+  <div class="doc__body">
+    {%- comment -%} 목차는 post.js 가 본문의 제목을 읽어 채운다. 제목이 두 개 미만이면 숨은 채로 둔다. {%- endcomment %}
+    <nav class="doc__toc glass" id="toc" aria-labelledby="toc-heading" hidden>
+      <p class="doc__toc-heading" id="toc-heading">Contents</p>
+      <ol class="toc" lang="ko" data-lens-group></ol>
+    </nav>
+
+    <div class="doc__scroll" tabindex="0" role="region" data-scroll="doc" aria-label="Post">
+      <div class="article">
+        <header class="article__header">
+          {%- if page.date %}
+          <p class="article__eyebrow">
+            {%- if cat %}<a href="{{ '/' | relative_url }}?c={{ cat.slug }}" data-category="{{ cat.slug }}" data-no-current>{% include icon.html name=cat.icon %}{{ cat.name }}</a><span aria-hidden="true">·</span>{% endif %}
+            <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%A, %B %-d, %Y" }}</time>
+            {%- comment -%} 읽는 시간: 한국어 글은 1분에 500자 남짓 읽는다고 보고 어림한다. {%- endcomment %}
+            {%- assign chars = content | strip_html | strip_newlines | size %}
+            {%- assign minutes = chars | divided_by: 500 | plus: 1 %}
+            <span aria-hidden="true">·</span><span class="article__time">{{ minutes }} min read</span>
+          </p>
+          {%- endif %}
+          <h1 class="article__title" id="doc-title" lang="ko">{{ page.title }}</h1>
+          {%- if page.description %}
+          <p class="article__lede" lang="ko">{{ page.description }}</p>
+          {%- endif %}
+        </header>
+
+        <div class="post-content" lang="ko">
+          {{ content }}
+        </div>
+
+        {%- if page.date %}
+        <footer class="article__end">
+
+          {%- if page.previous or page.next %}
+          <nav class="pager" aria-label="More posts">
+            {%- if page.previous %}
+            <a class="pager__link pager__link--prev" href="{{ page.previous.url | relative_url }}" rel="prev">
+              <span class="pager__label">{% include icon.html name="chevron-left" %}Previous Post</span>
+              <span class="pager__title" lang="ko">{{ page.previous.title }}</span>
+            </a>
+            {%- endif %}
+            {%- if page.next %}
+            <a class="pager__link pager__link--next" href="{{ page.next.url | relative_url }}" rel="next">
+              <span class="pager__label">Next Post{% include icon.html name="chevron-right" %}</span>
+              <span class="pager__title" lang="ko">{{ page.next.title }}</span>
+            </a>
+            {%- endif %}
+          </nav>
+          {%- endif %}
+        </footer>
+        {%- endif %}
+      </div>
+    </div>
+  </div>
+</article>
+{% include frame-restore.html %}
+{%- comment -%}
+  목차를 첫 그림 전에 펼친다. post.js 가 나중에 펼치면 본문 기둥이 좁아지며
+  글 전체가 한 번 밀린다. 목차를 채우는 일은 post.js 가 하고, 여기서는
+  post.js 와 같은 규칙으로 '펼칠지'만 정한다.
+{%- endcomment %}
+<script>
+(function () {
+  var win = document.getElementById('main-window'), toc = document.getElementById('toc');
+  if (!win || !toc) return;
+  var hs = win.querySelectorAll('.post-content h1, .post-content h2, .post-content h3'), lv = [], n, i;
+  for (i = 0; i < hs.length; i++) if (lv.indexOf(+hs[i].tagName[1]) < 0) lv.push(+hs[i].tagName[1]);
+  lv.sort();
+  function count(u) { var c = 0; for (var j = 0; j < hs.length; j++) if (u.indexOf(+hs[j].tagName[1]) >= 0) c++; return c; }
+  n = count(lv.slice(0, 2));
+  if (n > 20) n = count(lv.slice(0, 1));
+  if (n < 2) return;
+  var narrow = win.getBoundingClientRect().width < 940, pref = null;
+  try { pref = localStorage.getItem('ephemeris:toc'); } catch (e) {}
+  win.classList.toggle('doc--narrow', narrow);
+  if (!narrow && pref !== '0') { toc.hidden = false; win.classList.add('doc--toc'); }
+})();
+</script>

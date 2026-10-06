@@ -1,0 +1,51 @@
+{%- comment -%}
+  아이콘 모음. SF Symbols 의 선 굵기와 비례를 흉내 낸 20×20 선화다.
+  면은 칠하지 않고 currentColor 선으로만 그려서, 글자와 같은 먹색을 쓴다.
+  쓰는 곳에서는 {% include icon.html name="…" %} 로 부른다.
+{%- endcomment -%}
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- 메뉴 막대: 애플 메뉴 자리의 사과, Wi-Fi 부채꼴, 자물쇠 -->
+    <symbol id="i-apple" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 20 20"><path d="M6.96 13.16a4.3 4.3 0 0 1 6.08 0M4.27 10.47a8.1 8.1 0 0 1 11.46 0M1.59 7.79a11.9 11.9 0 0 1 16.82 0" fill="none" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="16.2" r="1.7" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-wifi-off" viewBox="0 0 20 20"><path d="M6.96 13.16a4.3 4.3 0 0 1 6.08 0M4.27 10.47a8.1 8.1 0 0 1 11.46 0M1.59 7.79a11.9 11.9 0 0 1 16.82 0" fill="none" stroke-width="2" stroke-linecap="round" opacity=".32"/><circle cx="10" cy="16.2" r="1.7" fill="currentColor" stroke="none" opacity=".32"/><path d="m3.6 2.8 12.8 14.4" fill="none" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 20 20"><rect x="4.6" y="8.8" width="10.8" height="8" rx="1.8" fill="currentColor" stroke="none"/><path d="M7 8.8V6.4a3 3 0 0 1 6 0v2.4" fill="none" stroke-width="1.7"/></symbol>
+    <!-- 애플 메뉴: 이 Mac · 잠자기 · 재시동 · 시스템 종료 · 테마(자동 · 라이트 · 다크) -->
+    <symbol id="i-mac" viewBox="0 0 20 20"><rect x="2.6" y="3.6" width="14.8" height="10" rx="1.8"/><path d="M1.4 16.4h17.2"/></symbol>
+    <symbol id="i-sleep" viewBox="0 0 20 20"><path d="M14.6 12.6a6.2 6.2 0 0 1-7.2-7.2 6.2 6.2 0 1 0 7.2 7.2z"/><path d="M12.4 3.2h3l-3 3.4h3M16.2 7.6h1.8l-1.8 2h1.8"/></symbol>
+    <symbol id="i-restart" viewBox="0 0 20 20"><path d="M16.2 10a6.2 6.2 0 1 1-1.9-4.5"/><path d="M14.8 2.4v3.4h-3.4"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 20 20"><path d="M10 2.8l1.3 1.6 2-.5.5 2 2 .6-.6 2L16.8 10l-1.6 1.3.6 2-2 .6-.5 2-2-.5L10 17.2l-1.3-1.6-2 .5-.5-2-2-.6.6-2L3.2 10l1.6-1.3-.6-2 2-.6.5-2 2 .5z"/><circle cx="10" cy="10" r="2.6"/></symbol>
+    <symbol id="i-download" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M10 6.2v7M7 10.4l3 3 3-3"/></symbol>
+    <symbol id="i-power" viewBox="0 0 20 20"><path d="M10 2.6v6.6"/><path d="M6.1 5.1a6.2 6.2 0 1 0 7.8 0"/></symbol>
+    <symbol id="i-theme-auto" viewBox="0 0 20 20"><circle cx="10" cy="10" r="6.8"/><path d="M10 3.2a6.8 6.8 0 0 1 0 13.6z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.4"/><path d="M10 2v1.8M10 16.2V18M2 10h1.8M16.2 10H18M4.3 4.3l1.3 1.3M14.4 14.4l1.3 1.3M4.3 15.7l1.3-1.3M14.4 5.6l1.3-1.3"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 20 20"><path d="M15.4 12.8A6.6 6.6 0 0 1 7.2 4.6a6.6 6.6 0 1 0 8.2 8.2z"/></symbol>
+    <!-- Finder 사이드바: 응용 프로그램 · 데스크탑 · 폴더 -->
+    <symbol id="i-apps" viewBox="0 0 20 20"><rect x="3" y="3" width="6" height="6" rx="1.6"/><rect x="11" y="3" width="6" height="6" rx="1.6"/><rect x="3" y="11" width="6" height="6" rx="1.6"/><rect x="11" y="11" width="6" height="6" rx="1.6"/></symbol>
+    <symbol id="i-desktop" viewBox="0 0 20 20"><rect x="2.6" y="3.4" width="14.8" height="10" rx="1.8"/><path d="M7.4 16.6h5.2M10 13.4v3.2"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 20 20"><path d="M2.8 6.2a1.6 1.6 0 0 1 1.6-1.6h3.4l1.6 1.8h6.2a1.6 1.6 0 0 1 1.6 1.6v6.6a1.6 1.6 0 0 1-1.6 1.6H4.4a1.6 1.6 0 0 1-1.6-1.6z"/><path d="M2.8 8.6h14.4"/></symbol>
+    <symbol id="i-all" viewBox="0 0 20 20"><rect x="3" y="7.2" width="14" height="9.8" rx="2.6"/><path d="M5 4.4h10M7.2 1.8h5.6"/></symbol>
+    <symbol id="i-cylinder" viewBox="0 0 20 20"><ellipse cx="10" cy="4.7" rx="6" ry="2.3"/><path d="M4 4.7v10.6c0 1.3 2.7 2.4 6 2.4s6-1.1 6-2.4V4.7"/><path d="M4 10c0 1.3 2.7 2.4 6 2.4s6-1.1 6-2.4"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.2"/><ellipse cx="10" cy="10" rx="3.1" ry="7.2"/><path d="M2.8 10h14.4"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 20 20"><rect x="5" y="5" width="10" height="10" rx="2.2"/><rect x="7.8" y="7.8" width="4.4" height="4.4" rx="0.9"/><path d="M8 5V2.8M12 5V2.8M8 17.2V15M12 17.2V15M5 8H2.8M5 12H2.8M17.2 8H15M17.2 12H15"/></symbol>
+    <symbol id="i-nodes" viewBox="0 0 20 20"><circle cx="10" cy="4.4" r="2.2"/><circle cx="4.6" cy="15" r="2.2"/><circle cx="15.4" cy="15" r="2.2"/><path d="M9 6.4 5.6 13M11 6.4l3.4 6.6M6.8 15h6.4"/></symbol>
+    <symbol id="i-shippingbox" viewBox="0 0 20 20"><path d="M10 2.6 16.6 6v8L10 17.4 3.4 14V6z"/><path d="M3.4 6 10 9.4 16.6 6M10 9.4v8M6.7 4.3l6.6 3.4"/></symbol>
+    <symbol id="i-note" viewBox="0 0 20 20"><rect x="4" y="2.8" width="12" height="14.4" rx="2.4"/><path d="M7 7h6M7 10h6M7 13h3.6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 20 20"><circle cx="8.6" cy="8.6" r="5.4"/><path d="m12.6 12.6 4.4 4.4"/></symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 20 20"><path d="M12.4 3.8 6.2 10l6.2 6.2"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 20 20"><path d="M7.6 3.8 13.8 10l-6.2 6.2"/></symbol>
+    <symbol id="i-list" viewBox="0 0 20 20"><path d="M7.6 5.5h9M7.6 10h9M7.6 14.5h9"/><circle cx="3.9" cy="5.5" r="1" fill="currentColor" stroke="none"/><circle cx="3.9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="3.9" cy="14.5" r="1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-rss" viewBox="0 0 20 20"><path d="M4 9.2a6.8 6.8 0 0 1 6.8 6.8M4 4.2A11.8 11.8 0 0 1 15.8 16"/><circle cx="4.9" cy="15.1" r="1.25" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-person" viewBox="0 0 20 20"><circle cx="10" cy="6.6" r="3.2"/><path d="M3.8 17c.6-3.2 3.1-5.2 6.2-5.2s5.6 2 6.2 5.2"/></symbol>
+    <symbol id="i-clear" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="currentColor" stroke="none"/><path d="m7.6 7.6 4.8 4.8m0-4.8-4.8 4.8" stroke="#fff"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 20 20"><rect x="6.6" y="6.6" width="10.2" height="10.6" rx="2.2"/><path d="M13.4 6.6V4.9a2.1 2.1 0 0 0-2.1-2.1H5.1A2.1 2.1 0 0 0 3 4.9v6.6a2.1 2.1 0 0 0 2.1 2.1h1.5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 20 20"><path d="m4.6 10.4 3.6 3.6 7.2-8"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 20 20"><path d="M5.2 2.8h6.4L15 6.2v9.4a1.6 1.6 0 0 1-1.6 1.6H5.2a1.6 1.6 0 0 1-1.6-1.6V4.4a1.6 1.6 0 0 1 1.6-1.6z"/><path d="M11.4 2.9v3.5H15M6.6 10h6.6M6.6 13h4.4"/></symbol>
+    <symbol id="i-sidebar" viewBox="0 0 20 20"><rect x="2.6" y="3.8" width="14.8" height="12.4" rx="2.6"/><path d="M8 3.8v12.4M4.6 7h1.6M4.6 9.6h1.6"/></symbol>
+    <symbol id="i-close" viewBox="0 0 20 20"><path d="m6 6 8 8m0-8-8 8"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 20 20"><path d="M5 10h10"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 20 20"><path d="M5.2 14.8V7.6l7.2 7.2zM14.8 5.2v7.2L7.6 5.2z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-share" viewBox="0 0 20 20"><path d="M10 12.2V2.8M6.6 6 10 2.6 13.4 6"/><path d="M6.4 8.4H5.4a1.8 1.8 0 0 0-1.8 1.8v5.4a1.8 1.8 0 0 0 1.8 1.8h9.2a1.8 1.8 0 0 0 1.8-1.8v-5.4a1.8 1.8 0 0 0-1.8-1.8h-1"/></symbol>
+    <symbol id="i-return" viewBox="0 0 20 20"><path d="M15.4 4.6v5.2a2 2 0 0 1-2 2H4.8"/><path d="m8 8.4-3.4 3.4L8 15.2"/></symbol>
+  </defs>
+</svg>

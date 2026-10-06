@@ -1,0 +1,12 @@
+# The pinned, read-only "about me" note in Notes (also opened by About.txt on the desktop
+# and printed by `cat Desktop/about.txt` in Terminal).
+#   title    the note's title
+#   bullets  one bullet per line; {posts} becomes the post count, {latest} the newest post's title
+
+title: "📍about me"
+bullets:
+  - "Hi, I'm Your Name 👋"
+  - "This note lives in _data/about_me.yml. Edit it to introduce yourself"
+  - "I've written {posts} posts so far. The latest is “{latest}”"
+  - "Built with Ephemeris, a Jekyll theme that looks like a Mac"
+  - "GitHub: github.com/your-username"

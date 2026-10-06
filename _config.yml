@@ -1,0 +1,128 @@
+# ===============================================================
+# A Jekyll blog that looks and works like a macOS desktop.
+#
+# Everything personal is set here and in _data/ — the code reads it from there:
+#   _config.yml           site info, wallpaper, and the `desktop:` block at the bottom
+#   _data/about_me.yml    the pinned "about me" note (Notes app, About.txt on the desktop)
+#   _data/categories.yml  post categories (Finder tags, Obsidian folders, Calendar colors)
+#   _data/projects.yml    your projects, shown as apps in the Games window
+#   _data/music.yml       the album the Spotify app plays
+#
+# `jekyll serve` does not reload this file while it runs: restart it after editing.
+# ===============================================================
+
+# ---------------------------------------------------------------
+# Site Settings
+# ---------------------------------------------------------------
+# Blog name: browser tab, About This Mac, System Settings, Mail, Obsidian vault,
+# Calendar, Terminal (uname · neofetch)
+title: Ephemeris
+# Optional. Added to the home page's tab title ("title - subtitle")
+subtitle:
+# Description for search engines and link previews (a post's own description wins)
+description: A blog that looks and works like a macOS desktop
+# Your name: lock screen, About This Mac, System Settings, Mail, © line
+author: Your Name
+# Language of the page (<html lang>)
+language: en
+# Where the Mail app sends visitors' messages (opens their mail app with this address).
+# Leave it empty and Mail still opens, but the Send button stays off.
+email: 
+# The site's address, without a trailing slash. Also used for feed/sitemap/SEO links and
+# shown in Terminal (neofetch) and the Linux-commands wallpaper.
+url: "https://your-username.github.io"
+# Sub-path when the site does not live at the domain root, e.g. "/blog" for
+# username.github.io/blog. Leave "" for username.github.io or a custom domain.
+baseurl: ""
+
+# ---------------------------------------------------------------
+# Build Settings
+# ---------------------------------------------------------------
+markdown: kramdown
+kramdown:
+  input: GFM
+highlighter: rouge
+
+permalink: /:year/:month/:day/:title/
+
+# Your time zone (IANA name, e.g. America/New_York). Post dates and URLs are counted
+# in it; without it GitHub Pages builds in UTC, so a post written early in the day
+# can get the previous day's URL.
+timezone: Asia/Seoul
+
+# Plugins
+plugins:
+  - jemoji
+  - jekyll-sitemap
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-redirect-from # redirect_from: in a post sends old URLs to the new one
+
+# ---------------------------------------------------------------
+# Exclude
+# ---------------------------------------------------------------
+exclude:
+  - tools # share-thumbnail and demo scripts (tools/og, tools/demo), not part of the site
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - README.md
+  - README.ko.md
+  - NOTICE.md
+  - docs # README images and the demo GIF
+
+# ---------------------------------------------------------------
+# Wallpaper — the default desktop and lock-screen background
+# (visitors can pick another one in System Settings › Wallpaper)
+# ---------------------------------------------------------------
+# To use your own picture, put it in assets/images/ and change the paths.
+#   wallpaper          the picture
+#   wallpaper_2x       a double-size copy for Retina screens (optional; falls back to wallpaper)
+#   wallpaper_dark     the picture in Dark appearance (optional; falls back to wallpaper)
+#   wallpaper_dark_2x  its Retina copy (optional)
+#   wallpaper_tone     how bright the picture is. dark: menu bar text and desktop icon
+#                      labels turn white even in Light appearance (as macOS does on a
+#                      dark wallpaper). light: they stay black.
+#
+# A hand-drawn light wallpaper is included too (assets/images/wallpaper*.webp, source
+# wallpaper.svg). To use it, point the four paths at wallpaper(-dark)(@2x).webp and set
+# wallpaper_tone to light.
+wallpaper: /assets/images/wallpaper-monterey.webp
+wallpaper_2x: /assets/images/wallpaper-monterey@2x.webp
+wallpaper_dark: /assets/images/wallpaper-monterey.webp
+wallpaper_dark_2x: /assets/images/wallpaper-monterey@2x.webp
+wallpaper_tone: dark
+# Paint the desktop one solid color instead of a picture (remove the line to go back).
+# Set wallpaper_tone to dark for a dark color, light for a light one.
+# wallpaper_color: "#d3d9b3"
+# Cover the wallpaper with a grid of Linux commands in cells of mixed sizes
+# (assets/js/wallgrid.js); a play button in the menu bar types them out.
+# wallpaper_grid: true
+
+# ---------------------------------------------------------------
+# Desktop — what the macOS desktop shows (Terminal, menu bar, widgets, apps)
+# ---------------------------------------------------------------
+desktop:
+  # Terminal: the prompt (username@hostname), whoami and the home folder /Users/<username>.
+  # Also the user in the Linux-commands wallpaper.
+  username: guest
+  # Terminal: the computer name in the prompt, hostname and uname -a
+  hostname: Ephemeris
+  # Wi-Fi network shown as connected (menu bar, Control Center, System Settings).
+  # A name ending in -5G also lists its 2.4 GHz twin (the same name without -5G).
+  wifi: Home-5G
+  # Weather widget on the desktop, from Open-Meteo (free, no API key).
+  # city is the label; latitude/longitude pick the forecast (look them up on any map).
+  weather:
+    city: Cupertino
+    latitude: 37.3230
+    longitude: -122.0322
+  # Notification Center's crypto widget (click the clock): Coinbase product ids
+  # (COIN-CURRENCY, e.g. BTC-USD, SOL-EUR), up to two. [] hides the widget.
+  coins: [BTC-USD, ETH-USD]
+  # The "Category" row of About This Mac. Remove the line to hide the row.
+  about_category: Personal Blog
+  # Apache Druid explainer app from the original blog. Its content is not part of this
+  # template, so keep it false.
+  druid: false
