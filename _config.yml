@@ -112,6 +112,16 @@ desktop:
   # Wi-Fi network shown as connected (menu bar, Control Center, System Settings).
   # A name ending in -5G also lists its 2.4 GHz twin (the same name without -5G).
   wifi: Home-5G
+  # Optional built-in Dock apps. Omit this block (or any key) to keep the app visible.
+  # Set an app to false to remove its launch surfaces such as Dock, Finder Applications,
+  # Spotlight, and matching Terminal ~/Applications entries.
+  apps:
+    obsidian: true
+    mail: true
+    notes: true
+    terminal: true
+    games: true
+    music: true
   # Weather widget on the desktop, from Open-Meteo (free, no API key).
   # city is the label; latitude/longitude pick the forecast (look them up on any map).
   weather:
