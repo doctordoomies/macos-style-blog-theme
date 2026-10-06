@@ -222,6 +222,7 @@
           <span class="cc__label">Sound</span>
           <span class="cc__range"><svg class="icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3.4 8h2.6l4-3.4v10.8L6 12H3.4z"/><path d="M13 7.6a3.4 3.4 0 0 1 0 4.8"/></svg><input type="range" min="0" max="100" step="1" value="80" aria-label="Volume" data-cc-volume></span>
         </label>
+        {%- unless site.desktop.apps.music == false %}
         <div class="cc__tile cc__now">
           <img class="cc__art" src="{{ '/assets/images/dock/spotify-128.png' | relative_url }}" alt="" width="40" height="40" draggable="false" data-cc-art>
           <span class="cc__track"><b data-cc-title>Not Playing</b><small data-cc-artist>Spotify</small></span>
@@ -231,6 +232,7 @@
             <button type="button" role="menuitem" data-cc="next" data-keep-open aria-label="Next Track"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="17.1" y="5.5" width="2.4" height="13" rx="1"/><path d="M4.5 6.4v11.2a.8.8 0 0 0 1.2.7l8.9-5.6a.8.8 0 0 0 0-1.4L5.7 5.7a.8.8 0 0 0-1.2.7z"/></svg></button>
           </span>
         </div>
+        {%- endunless %}
       </div>
     </div>
     <button class="menubar__item menubar__icon" type="button" data-open-spotlight aria-label="Spotlight Search (⌘K)">
