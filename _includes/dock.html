@@ -17,42 +17,54 @@
           <span class="dock__tip" aria-hidden="true">Finder</span>
         </a>
       </li>
+      {%- unless site.desktop.apps.obsidian == false %}
       <li>
         <button class="dock__app" type="button" data-dock-obsidian data-folders="{{ site.data.categories | map: 'slug' | join: ' ' }}" aria-label="Obsidian (read posts as notes)">
           <img class="dock__icon" src="{{ dock }}obsidian-128.png" srcset="{{ dock }}obsidian-128.png 1x, {{ dock }}obsidian-256.png 2x" alt="" draggable="false">
           <span class="dock__tip" aria-hidden="true">Obsidian</span>
         </button>
       </li>
+      {%- endunless %}
+      {%- unless site.desktop.apps.mail == false %}
       <li>
         <button class="dock__app" type="button" data-dock-mail aria-label="Mail">
           <img class="dock__icon" src="{{ dock }}mail-128.png" srcset="{{ dock }}mail-128.png 1x, {{ dock }}mail-256.png 2x" alt="" draggable="false">
           <span class="dock__tip" aria-hidden="true">Mail</span>
         </button>
       </li>
+      {%- endunless %}
+      {%- unless site.desktop.apps.notes == false %}
       <li>
         <button class="dock__app" type="button" data-dock-notes aria-label="Notes">
           <img class="dock__icon" src="{{ dock }}notes-128.png" srcset="{{ dock }}notes-128.png 1x, {{ dock }}notes-256.png 2x" alt="" draggable="false">
           <span class="dock__tip" aria-hidden="true">Notes</span>
         </button>
       </li>
+      {%- endunless %}
+      {%- unless site.desktop.apps.terminal == false %}
       <li>
         <button class="dock__app" type="button" data-dock-terminal aria-label="Terminal">
           <img class="dock__icon" src="{{ dock }}terminal-128.png" srcset="{{ dock }}terminal-128.png 1x, {{ dock }}terminal-256.png 2x" alt="" draggable="false">
           <span class="dock__tip" aria-hidden="true">Terminal</span>
         </button>
       </li>
+      {%- endunless %}
+      {%- unless site.desktop.apps.games == false %}
       <li>
         <button class="dock__app" type="button" data-dock-games aria-label="Games (personal projects)">
           <img class="dock__icon" src="{{ dock }}games-128.png" srcset="{{ dock }}games-128.png 1x, {{ dock }}games-256.png 2x" alt="" draggable="false">
           <span class="dock__tip" aria-hidden="true">Games</span>
         </button>
       </li>
+      {%- endunless %}
+      {%- unless site.desktop.apps.music == false %}
       <li>
         <button class="dock__app" type="button" data-dock-music aria-label="Spotify (music player)">
           <img class="dock__icon" src="{{ dock }}spotify-128.png" srcset="{{ dock }}spotify-128.png 1x, {{ dock }}spotify-256.png 2x" alt="" draggable="false">
           <span class="dock__tip" aria-hidden="true">Spotify</span>
         </button>
       </li>
+      {%- endunless %}
       <li>
         <button class="dock__app" type="button" data-dock-settings aria-label="System Settings">
           <img class="dock__icon" src="{{ dock }}settings-128.png" srcset="{{ dock }}settings-128.png 1x, {{ dock }}settings-256.png 2x" alt="" draggable="false">
