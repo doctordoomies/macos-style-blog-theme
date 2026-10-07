@@ -19,6 +19,7 @@ import { setupWindow, focusWindow, closeWindow, setCloser, openWindow, flyTo } f
 import { loadPosts } from './posts.js';
 import { getAppearance, setAppearance } from './theme.js';
 import { SITE } from './site.js';
+import { APPS as REGISTRY } from './apps.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 
@@ -46,25 +47,19 @@ function projects() {
   }
 }
 
-// ── 파일 시스템 ─────────────────────────────────────────────────
-const APPS = {
-  Finder: '[data-dock-finder]',
-  Obsidian: '[data-dock-obsidian]',
-  Notes: '[data-dock-notes]',
-  Terminal: '[data-dock-terminal]',
-  Games: '[data-dock-games]',
-  Spotify: '[data-dock-music]',
-};
-const OPTIONAL_APPS = {
-  Obsidian: 'obsidian',
-  Notes: 'notes',
-  Terminal: 'terminal',
-  Games: 'games',
-  Spotify: 'music',
-};
-for (const [name, key] of Object.entries(OPTIONAL_APPS)) {
-  if (!SITE.desktop.apps[key]) delete APPS[name];
+// 글이나 쪽을 연다. 다른 모듈이 가로채지 않으면(ephemeris:open) 그 주소로 간다.
+function openPage(href) {
+  const ev = new CustomEvent('ephemeris:open', { detail: { href }, cancelable: true });
+  if (dispatchEvent(ev)) location.href = href;
 }
+
+// ── 파일 시스템 ─────────────────────────────────────────────────
+// ~/Applications 의 앱 이름 → Dock 단추. desktop.apps 에서 끈 앱은 apps.js 의 목록에 없으므로 여기에도 없다.
+const APPS = Object.fromEntries(
+  ['finder', 'obsidian', 'notes', 'terminal', 'games', 'music']
+    .filter((key) => REGISTRY[key])
+    .map((key) => [REGISTRY[key].name, REGISTRY[key].dock]),
+);
 
 async function buildFs() {
   const nodes = new Map();
@@ -252,18 +247,17 @@ const COMMANDS = {
       const node = fs.get(resolve(args[0]));
       if (!node) return printText(`The file ${resolve(args[0])} does not exist.`, 'term__err');
       if (node.dir) {
-        if (resolve(args[0]).startsWith(`${HOME}/Obsidian`)) $(APPS.Obsidian)?.click();
+        // Obsidian 을 꺼 두었으면 Finder 로 연다.
+        if (resolve(args[0]).startsWith(`${HOME}/Obsidian`)) $(APPS.Obsidian || APPS.Finder)?.click();
         else $(APPS.Finder)?.click();
         return;
       }
       if (node.app) return $(node.app)?.click();
       if (node.druid) return dispatchEvent(new CustomEvent('ephemeris:druid'));
       if (node.url) return window.open(node.url, '_blank', 'noopener');
-      if (node.about) return $(APPS.Notes)?.click();
-      if (node.post) {
-        const ev = new CustomEvent('ephemeris:open', { detail: { href: node.post.url }, cancelable: true });
-        if (dispatchEvent(ev)) location.href = node.post.url;
-      }
+      // 메모 앱을 꺼 두었으면 바탕의 About.txt 처럼 소개 쪽을 연다.
+      if (node.about) return APPS.Notes ? $(APPS.Notes)?.click() : openPage('/about/');
+      if (node.post) openPage(node.post.url);
     },
   },
   search: {

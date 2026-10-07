@@ -122,9 +122,10 @@ export const APPS = {
 };
 
 // desktop.apps 에서 false 로 끈 선택 앱은 레지스트리에서도 뺀다.
-// Dock · Spotlight · 앱 전환기 등이 같은 APPS 를 보므로 여기 한 곳에서 맞춘다.
-for (const key of ['obsidian', 'mail', 'notes', 'terminal', 'games', 'music']) {
-  if (!SITE.desktop.apps[key]) delete APPS[key];
+// Dock · Spotlight · 앱 전환기 · 터미널이 같은 APPS 를 보므로 여기 한 곳에서 맞춘다.
+// 끌 수 있는 앱의 목록은 site.js 의 SITE.desktop.apps 하나뿐이다.
+for (const [key, on] of Object.entries(SITE.desktop.apps)) {
+  if (!on) delete APPS[key];
 }
 
 // _config.yml 의 desktop.druid 가 false 면 Apache Druid 도 목록에서 뺀다.

@@ -534,7 +534,8 @@ export function iconInfo(icon) {
       kind: 'Plain Text Document',
       rows: [
         ['Where', 'Desktop'],
-        ['Opens', 'The “about me” note in Notes'],
+        // 메모 앱을 꺼 두면 data-about-note 가 없고, 소개 쪽으로 열린다.
+        ['Opens', icon.hasAttribute('data-about-note') ? 'The “about me” note in Notes' : new URL(icon.getAttribute('href'), location.href).pathname],
         ['Description', 'An introduction to the person who writes this blog.'],
       ],
     });
