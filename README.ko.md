@@ -54,6 +54,7 @@
 | `url`, `baseurl` | 사이트 주소. `baseurl` 은 `/blog` 같은 하위 경로에 둘 때만 |
 | `description` | 검색 엔진과 링크 미리보기의 기본 설명 |
 | `timezone` | 글의 날짜와 주소를 이 시간대로 셉니다 |
+| `desktop.apps` | 선택 앱 표시 여부. 묶음을 생략하면 기존처럼 모두 보이고, 각 앱을 `false` 로 끌 수 있습니다 |
 | `wallpaper`, `wallpaper_2x`, `wallpaper_dark`, `wallpaper_dark_2x`, `wallpaper_tone` | 기본 배경화면. `wallpaper_tone: dark` 면 메뉴 막대 글자가 흰색 |
 | `wallpaper_color`, `wallpaper_grid` | 선택: 그림 대신 단색, 또는 리눅스 명령어 격자 |
 
@@ -62,6 +63,13 @@ desktop:
   username: guest           # 터미널 프롬프트와 whoami
   hostname: Ephemeris       # 터미널 프롬프트의 컴퓨터 이름
   wifi: Home-5G             # 연결된 것으로 보이는 Wi-Fi 이름
+  apps:                     # 선택 앱. 생략한 키는 계속 표시
+    obsidian: true
+    mail: true
+    notes: true
+    terminal: true
+    games: true
+    music: true
   weather:                  # 바탕의 날씨 위젯(Open-Meteo, API 키 없음)
     city: Cupertino
     latitude: 37.3230
@@ -70,6 +78,8 @@ desktop:
   about_category: Personal Blog   # 이 Mac에 관하여의 Category 줄
   druid: false              # false 그대로(원래 블로그의 앱이라 포함되지 않음)
 ```
+
+`desktop.apps` 의 선택 앱을 `false` 로 바꾸면 Dock, Finder의 응용 프로그램 보기, Spotlight, 그리고 해당되는 터미널의 `~/Applications` 항목에서 사라집니다. `desktop.apps` 자체를 생략하면 기존처럼 모든 선택 앱을 표시합니다. Finder, Preview, 이 Mac에 관하여, 시스템 설정, Calendar는 기본 앱으로 유지됩니다.
 
 `jekyll serve` 는 실행 중에 `_config.yml` 을 다시 읽지 않습니다. 고친 뒤에는 다시 켜 주세요.
 

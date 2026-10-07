@@ -54,6 +54,7 @@ Everything personal is in `_config.yml` and `_data/`. You never need to touch th
 | `url`, `baseurl` | Your site's address. `baseurl` only if it lives in a sub-path like `/blog` |
 | `description` | Default description for search engines and link previews |
 | `timezone` | Post dates and URLs are counted in this time zone |
+| `desktop.apps` | Optional built-in apps. Omit it to keep the current defaults, or set individual apps to `false` to hide them |
 | `wallpaper`, `wallpaper_2x`, `wallpaper_dark`, `wallpaper_dark_2x`, `wallpaper_tone` | The default wallpaper. `wallpaper_tone: dark` makes menu-bar text white |
 | `wallpaper_color`, `wallpaper_grid` | Optional: a solid color instead of a picture, or the Linux-command grid |
 
@@ -62,6 +63,13 @@ desktop:
   username: guest           # Terminal prompt and whoami
   hostname: Ephemeris       # Terminal prompt host
   wifi: Home-5G             # Wi-Fi network shown as connected
+  apps:                     # optional built-in apps; omitted keys stay enabled
+    obsidian: true
+    mail: true
+    notes: true
+    terminal: true
+    games: true
+    music: true
   weather:                  # desktop widget (Open-Meteo, no API key)
     city: Cupertino
     latitude: 37.3230
@@ -70,6 +78,8 @@ desktop:
   about_category: Personal Blog   # "Category" row in About This Mac
   druid: false              # keep false (an app from the original blog, not included)
 ```
+
+Set any optional app to `false` to remove it from the Dock, Finder's Applications view, Spotlight, and matching Terminal application entries. Omitting `desktop.apps` keeps the existing all-enabled behavior. Finder, Preview, About This Mac, System Settings and Calendar remain core apps.
 
 `jekyll serve` doesn't reload `_config.yml` while it runs, so restart it after editing.
 

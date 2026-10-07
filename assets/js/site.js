@@ -8,7 +8,7 @@
  *   SITE.title · author · email · url · host     _config.yml 의 맨 위 설정
  *   SITE.about · posts · latest · first           메모 앱 · 터미널이 쓰는 글 정보
  *   SITE.desktop.username · hostname · wifi        _config.yml 의 desktop 묶음
- *   SITE.desktop.weather · coins · druid
+ *   SITE.desktop.weather · coins · apps · druid
  *   SITE.music.album · tracks                      _data/music.yml
  *
  * 값이 빠지거나 모양이 틀려도 앱이 멈추지 않게 아래 기본값으로 채운다.
@@ -32,8 +32,10 @@ const num = (v, fallback) => {
 const raw = read();
 const desk = raw.desktop || {};
 const weather = desk.weather || {};
+const appSettings = desk.apps && typeof desk.apps === 'object' && !Array.isArray(desk.apps) ? desk.apps : {};
 const album = raw.music?.album || {};
 const tracks = Array.isArray(raw.music?.tracks) ? raw.music.tracks : [];
+const optionalAppEnabled = (key) => appSettings[key] !== false;
 
 // 설정에 주소가 없으면 지금 연 주소. host 는 앞의 https:// 와 끝의 / 를 뗀 이름이다.
 const url = text(raw.url, location.origin).replace(/\/+$/, '');
@@ -59,6 +61,15 @@ export const SITE = {
       longitude: num(weather.longitude, -122.0322),
     },
     coins,
+    // 선택 앱은 false 라고 적었을 때만 뺀다. apps 묶음이나 키가 없으면 예전처럼 모두 보인다.
+    apps: {
+      obsidian: optionalAppEnabled('obsidian'),
+      mail: optionalAppEnabled('mail'),
+      notes: optionalAppEnabled('notes'),
+      terminal: optionalAppEnabled('terminal'),
+      games: optionalAppEnabled('games'),
+      music: optionalAppEnabled('music'),
+    },
     // Apache Druid 앱은 false 라고 적었을 때만 뺀다(키가 없으면 그대로 둔다).
     druid: desk.druid !== false,
   },

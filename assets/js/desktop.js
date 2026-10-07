@@ -260,6 +260,7 @@ addEventListener('ephemeris:calendar', async (e) => {
 });
 
 addEventListener('ephemeris:about-note', async () => {
+  if (!APPS.notes) return;
   const { openNotes } = await busy(import('./notes.js'));
   openNotes($('[data-dock-notes]'), { note: 'about-me' });
 });

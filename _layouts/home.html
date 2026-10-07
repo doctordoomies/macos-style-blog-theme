@@ -21,7 +21,7 @@ layout: desktop
 
 <ul class="desktop-icons" aria-label="Desktop" data-desktop-icons>
   <li>
-    <a class="desktop-icon" href="{{ '/about/' | relative_url }}" data-desktop-icon data-about-note>
+    <a class="desktop-icon" href="{{ '/about/' | relative_url }}" data-desktop-icon{% unless site.desktop.apps.notes == false %} data-about-note{% endunless %}>
       <img class="desktop-icon__img" src="{{ '/assets/images/dock/notes-128.png' | relative_url }}" srcset="{{ '/assets/images/dock/notes-128.png' | relative_url }} 1x, {{ '/assets/images/dock/notes-256.png' | relative_url }} 2x" width="64" height="64" alt="" draggable="false">
       <span class="desktop-icon__label">About.txt</span>
     </a>
@@ -117,19 +117,31 @@ layout: desktop
     <div class="finder__place finder__grid" data-place-view="apps" role="region" aria-label="Applications" tabindex="0">
       <ul class="ficons">
         <li><button class="ficon" type="button" data-open-app="finder"><img src="{{ '/assets/images/dock/' | relative_url }}finder-128.png" alt="" width="64" height="64" draggable="false"><span class="ficon__label">Finder</span></button></li>
+        {%- unless site.desktop.apps.obsidian == false %}
         <li><button class="ficon" type="button" data-open-app="obsidian"><img src="{{ '/assets/images/dock/' | relative_url }}obsidian-128.png" alt="" width="64" height="64" draggable="false"><span class="ficon__label">Obsidian</span></button></li>
+        {%- endunless %}
+        {%- unless site.desktop.apps.mail == false %}
         <li><button class="ficon" type="button" data-open-app="mail"><img src="{{ '/assets/images/dock/' | relative_url }}mail-128.png" alt="" width="64" height="64" draggable="false"><span class="ficon__label">Mail</span></button></li>
+        {%- endunless %}
+        {%- unless site.desktop.apps.notes == false %}
         <li><button class="ficon" type="button" data-open-app="notes"><img src="{{ '/assets/images/dock/' | relative_url }}notes-128.png" alt="" width="64" height="64" draggable="false"><span class="ficon__label">Notes</span></button></li>
+        {%- endunless %}
+        {%- unless site.desktop.apps.terminal == false %}
         <li><button class="ficon" type="button" data-open-app="terminal"><img src="{{ '/assets/images/dock/' | relative_url }}terminal-128.png" alt="" width="64" height="64" draggable="false"><span class="ficon__label">Terminal</span></button></li>
+        {%- endunless %}
+        {%- unless site.desktop.apps.games == false %}
         <li><button class="ficon" type="button" data-open-app="games"><img src="{{ '/assets/images/dock/' | relative_url }}games-128.png" alt="" width="64" height="64" draggable="false"><span class="ficon__label">Games</span></button></li>
+        {%- endunless %}
+        {%- unless site.desktop.apps.music == false %}
         <li><button class="ficon" type="button" data-open-app="music"><img src="{{ '/assets/images/dock/' | relative_url }}spotify-128.png" alt="" width="64" height="64" draggable="false"><span class="ficon__label">Spotify</span></button></li>
+        {%- endunless %}
         <li><button class="ficon" type="button" data-open-app="settings"><img src="{{ '/assets/images/dock/' | relative_url }}settings-128.png" alt="" width="64" height="64" draggable="false"><span class="ficon__label">System Settings</span></button></li>
       </ul>
     </div>
 
     <div class="finder__place finder__grid" data-place-view="desktop" role="region" aria-label="Desktop" tabindex="0" hidden>
       <ul class="ficons">
-        <li><a class="ficon" href="{{ '/about/' | relative_url }}" data-about-note><img src="{{ '/assets/images/dock/' | relative_url }}notes-128.png" alt="" width="64" height="64" draggable="false"><span class="ficon__label">About.txt</span></a></li>
+        <li><a class="ficon" href="{{ '/about/' | relative_url }}"{% unless site.desktop.apps.notes == false %} data-about-note{% endunless %}><img src="{{ '/assets/images/dock/' | relative_url }}notes-128.png" alt="" width="64" height="64" draggable="false"><span class="ficon__label">About.txt</span></a></li>
         {%- if site.desktop.druid != false %}
         <li><a class="ficon" href="{{ '/druid/' | relative_url }}" data-druid><img src="{{ '/assets/images/apps/' | relative_url }}apache-druid.svg" alt="" width="64" height="64" draggable="false"><span class="ficon__label">Apache Druid</span></a></li>
         {%- endif %}

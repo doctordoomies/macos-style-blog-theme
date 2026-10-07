@@ -9,7 +9,7 @@
  *   저전력 모드  배터리 메뉴의 것과 같다(움직임을 멈춘다)
  *   디스플레이   화면을 어둡게(덮개 한 장의 짙기)
  *   사운드       Spotify 창의 음량
- *   지금 재생 중 Spotify 의 곡 이름과 이전, 재생, 다음
+ *   지금 재생 중 Spotify 의 곡 이름과 이전, 재생, 다음(desktop.apps.music 이 false 면 없다)
  */
 import { setAppearance } from './theme.js';
 import { SITE } from './site.js';
@@ -71,6 +71,8 @@ function sync() {
   if (vol) volInput.value = vol.value;
   volInput.style.setProperty('--p', `${volInput.value}%`);
 
+  // desktop.apps.music 가 false 면 '지금 재생 중' 칸이 없다.
+  if (!$('.cc__now', panel)) return;
   const music = $('.window.music');
   const title = music && $('[data-music-title]', music)?.textContent;
   $('[data-cc-title]', panel).textContent = title || 'Not Playing';
