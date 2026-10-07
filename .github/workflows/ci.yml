@@ -29,9 +29,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3"
-
-      - name: Install Ruby dependencies
-        run: bundle install --jobs 4 --retry 3
+          bundler-cache: true
 
       - name: Build Jekyll site
         run: bundle exec jekyll build --trace
@@ -57,7 +55,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
-          python - <<'PY'
+          python3 - <<'PY'
           import os
           import pathlib
           import subprocess
@@ -90,6 +88,7 @@ jobs:
               ".md",
               ".rb",
               ".scss",
+              ".sh",
               ".txt",
               ".xml",
               ".yaml",
@@ -100,6 +99,8 @@ jobs:
 
           for name in changed:
               path = pathlib.Path(name)
+              if path.parts and path.parts[0] == "_includes":
+                  continue
               if path.name not in filenames and path.suffix.lower() not in extensions:
                   continue
               if not path.is_file():
@@ -119,71 +120,5 @@ jobs:
           PY
 
       - name: Smoke test default and optional-app configurations
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          apps=(obsidian mail notes terminal games music)
-          variants=(default "${apps[@]}")
-
-          for disabled in "${variants[@]}"; do
-            echo "::group::Smoke test: ${disabled}"
-
-            if [[ "${disabled}" == "default" ]]; then
-              destination="_site"
-            else
-              override="$(mktemp --suffix=.yml)"
-              {
-                echo "desktop:"
-                echo "  apps:"
-                for app in "${apps[@]}"; do
-                  if [[ "${app}" == "${disabled}" ]]; then
-                    echo "    ${app}: false"
-                  else
-                    echo "    ${app}: true"
-                  fi
-                done
-              } > "${override}"
-
-              destination="_site-smoke-${disabled}"
-              bundle exec jekyll build \
-                --config "_config.yml,${override}" \
-                --destination "${destination}" \
-                --trace
-              rm -f "${override}"
-            fi
-
-            python3 -m http.server 4173 \
-              --bind 127.0.0.1 \
-              --directory "${destination}" \
-              >"/tmp/ephemeris-${disabled}.log" 2>&1 &
-            server_pid=$!
-
-            cleanup() {
-              kill "${server_pid}" 2>/dev/null || true
-              wait "${server_pid}" 2>/dev/null || true
-            }
-            trap cleanup EXIT
-
-            ready=0
-            for _ in {1..50}; do
-              if curl -fsS http://127.0.0.1:4173/ >/dev/null; then
-                ready=1
-                break
-              fi
-              sleep 0.2
-            done
-
-            if [[ "${ready}" -ne 1 ]]; then
-              cat "/tmp/ephemeris-${disabled}.log"
-              exit 1
-            fi
-
-            node tools/demo/smoke.mjs \
-              --base http://127.0.0.1:4173 \
-              --disabled "${disabled}"
-
-            cleanup
-            trap - EXIT
-            echo "::endgroup::"
-          done
+        working-directory: tools/demo
+        run: npm run smoke

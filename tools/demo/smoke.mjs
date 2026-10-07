@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /*
- * Lightweight browser smoke test used by CI.
+ * Browser smoke test for Ephemeris.
  *
- * Loads a built Ephemeris site, fails on uncaught page errors, and checks that
- * an app disabled through desktop.apps is absent from its main launch surfaces.
+ * Loads a built site, fails on uncaught page errors, verifies optional-app
+ * visibility, exercises Finder, and opens every enabled lazy-loaded app.
  *
  *   node smoke.mjs --base http://127.0.0.1:4173 --disabled music
  */
@@ -16,14 +16,44 @@ const arg = (name, fallback = '') => {
 
 const BASE = arg('base', 'http://127.0.0.1:4173');
 const DISABLED = arg('disabled', 'default');
-const selectors = {
-  obsidian: '[data-dock-obsidian]',
-  mail: '[data-dock-mail]',
-  notes: '[data-dock-notes]',
-  terminal: '[data-dock-terminal]',
-  games: '[data-dock-games]',
-  music: '[data-dock-music]',
-};
+const OPTIONAL_APPS = ['obsidian', 'mail', 'notes', 'terminal', 'games', 'music'];
+
+if (DISABLED !== 'default' && !OPTIONAL_APPS.includes(DISABLED)) {
+  throw new Error(`Unknown disabled app: ${DISABLED}`);
+}
+
+const dockSelector = (app) => `[data-dock-${app}]`;
+const finderSelector = (app) => `[data-open-app="${app}"]`;
+const windowSelector = (app) => `[data-window="${app}"]`;
+
+async function expectCount(page, selector, expected, message) {
+  const count = await page.locator(selector).count();
+  if (count !== expected) {
+    throw new Error(`${message} (expected ${expected}, found ${count}: ${selector})`);
+  }
+}
+
+async function clickDom(page, selector) {
+  const clicked = await page.evaluate((sel) => {
+    const el = document.querySelector(sel);
+    if (!el) return false;
+    el.click();
+    return true;
+  }, selector);
+  if (!clicked) throw new Error(`Could not click missing element: ${selector}`);
+}
+
+async function waitForWindow(page, app, open) {
+  await page.waitForFunction(
+    ({ selector, shouldBeOpen }) => {
+      const el = document.querySelector(selector);
+      const isOpen = Boolean(el && !el.classList.contains('is-closed') && !el.hidden);
+      return shouldBeOpen ? isOpen : !el || !isOpen;
+    },
+    { selector: windowSelector(app), shouldBeOpen: open },
+    { timeout: 5000 },
+  );
+}
 
 const browser = await chromium.launch({
   channel: process.env.CHROME_CHANNEL || 'chrome',
@@ -40,38 +70,72 @@ try {
 
   await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('[data-dock-finder]');
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(300);
 
-  if (DISABLED !== 'default') {
-    const selector = selectors[DISABLED];
-    if (!selector) throw new Error(`Unknown disabled app: ${DISABLED}`);
-
-    if (await page.locator(selector).count()) {
-      throw new Error(`${DISABLED} is disabled but ${selector} is still rendered`);
-    }
-
-    const finderApp = page.locator(`[data-open-app="${DISABLED}"]`);
-    if (await finderApp.count()) {
-      throw new Error(`${DISABLED} is disabled but still appears in Finder Applications`);
-    }
-
-    if (DISABLED === 'music' && (await page.locator('.cc__now').count())) {
-      throw new Error('music is disabled but Control Center Now Playing is still rendered');
-    }
+  // Each variant must hide exactly the requested optional app and preserve all
+  // other optional launch surfaces. This catches copy/paste mistakes in Liquid.
+  for (const app of OPTIONAL_APPS) {
+    const enabled = DISABLED === 'default' || app !== DISABLED;
+    await expectCount(
+      page,
+      dockSelector(app),
+      enabled ? 1 : 0,
+      enabled ? `${app} Dock button disappeared unexpectedly` : `${app} Dock button is still rendered`,
+    );
+    await expectCount(
+      page,
+      finderSelector(app),
+      enabled ? 1 : 0,
+      enabled ? `${app} Finder application disappeared unexpectedly` : `${app} is still rendered in Finder Applications`,
+    );
   }
 
-  // Exercise two core launch paths after module initialization. A module-load
-  // exception should not be able to silently leave the desktop looking present
-  // while its controls are dead.
-  await page.evaluate(() => document.querySelector('[data-cc-button]')?.click());
-  await page.waitForTimeout(100);
-  const cc = page.locator('#menu-cc');
-  if (!(await cc.count()) || (await cc.getAttribute('hidden')) !== null) {
-    throw new Error('Control Center did not open');
+  await expectCount(
+    page,
+    '.cc__now',
+    DISABLED === 'music' ? 0 : 1,
+    DISABLED === 'music'
+      ? 'Control Center Now Playing is still rendered with music disabled'
+      : 'Control Center Now Playing disappeared while music is enabled',
+  );
+
+  // Control Center must still work after all eager desktop modules initialize.
+  await clickDom(page, '[data-cc-button]');
+  await page.waitForFunction(() => {
+    const panel = document.querySelector('#menu-cc');
+    return Boolean(panel && !panel.hidden);
+  });
+  await clickDom(page, '[data-cc-button]');
+
+  // Finder starts closed on the home page. Force it closed even if that changes,
+  // then prove the Dock handler actually reopens it.
+  const finder = page.locator(windowSelector('finder'));
+  if (!(await finder.count())) throw new Error('Finder window is missing from the page');
+
+  if (!(await finder.evaluate((el) => el.classList.contains('is-closed')))) {
+    await clickDom(page, `${windowSelector('finder')} [data-window-action="close"]`);
+    await waitForWindow(page, 'finder', false);
   }
 
-  await page.evaluate(() => document.querySelector('[data-dock-finder]')?.click());
-  await page.waitForTimeout(100);
+  await clickDom(page, '[data-dock-finder]');
+  await waitForWindow(page, 'finder', true);
+
+  // Optional app modules are lazy-loaded from their Dock handlers. Open every
+  // enabled app so import-time/runtime failures are observed by pageerror or by
+  // the missing-window timeout below.
+  for (const app of OPTIONAL_APPS) {
+    if (app === DISABLED) continue;
+
+    await clickDom(page, dockSelector(app));
+    await waitForWindow(page, app, true);
+
+    // Close it before opening the next app to keep the smoke run deterministic.
+    const close = `${windowSelector(app)} [data-window-action="close"]`;
+    if (await page.locator(close).count()) {
+      await clickDom(page, close);
+      await waitForWindow(page, app, false);
+    }
+  }
 
   if (errors.length) {
     throw new Error(`Uncaught browser error(s):\n${errors.join('\n\n')}`);
